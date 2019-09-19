@@ -459,63 +459,13 @@ class TestMainWindow(QMainWindow):
         print("update image queue")
 
 
-# class Worker(QObject):
-#     """
-#     Must derive from QObject in order to emit signals, connect slots to other signals, and operate in a QThread.
-#     """
-#
-#     sig_video_mode_img = pyqtSignal(dict)
-#     sig_hardware_mode_img = pyqtSignal(dict)
-#
-#     def __init__(self):
-#         super().__init__()
-#         self.camera = Chameleon()
-#         self.camera.initializeCamera(settings.instrument_params["Camera"]["index"])
-#         self.camera.setAcquisitionMode(settings.widget_params["Image Display Setting"]["mode"])
-#
-#         self.camera.setExposure(settings.instrument_params["Camera"]["exposure time"])
-#         self.camera.setShutter(settings.instrument_params["Camera"]["shutter time"])
-#         self.camera.setGain(settings.instrument_params["Camera"]["gain value"])
-#         # set a low grab timeout to avoid crash when retrieve image.
-#         self.camera.set_grab_timeout(grab_timeout=10)
-#         self.__abort = False
-#
-#     @pyqtSlot()
-#     def work(self):
-#         print("camera start work")
-#         self.camera.startAcquisition()
-#         while True:
-#             # check if we need to abort the loop; need to process events to receive signals;
-#             QApplication.processEvents()  # this could cause change to self.__abort
-#             if self.__abort:
-#                 break
-#
-#             img_data = self.camera.retrieveOneImg()  # retrieve image from camera buffer
-#             if img_data is None:
-#                 continue
-#             else:
-#                 timestamp = datetime.datetime.now()
-#                 if settings.widget_params["Image Display Setting"]["mode"] == 2:
-#                     self.sig_hardware_mode_img.emit({'img_name': str(timestamp), 'img_data': Helper.split_list(img_data)})
-#                 else:
-#                     self.sig_video_mode_img.emit({'img_name': str(timestamp), 'img_data': Helper.split_list(img_data)})
-#                     # set a appropriate refresh value
-#                     time.sleep(0.1)
-#         self.camera.stopCamera()
-#
-#     def abort(self):
-#         self.__abort = True
-
-#just for test
 class Worker(QObject):
     """
     Must derive from QObject in order to emit signals, connect slots to other signals, and operate in a QThread.
     """
 
     sig_video_mode_img = pyqtSignal(dict)
-    sig_hardware_mode_img1 = pyqtSignal(dict)
-    sig_hardware_mode_img2 = pyqtSignal(dict)
-    sig_hardware_mode_img3 = pyqtSignal(dict)
+    sig_hardware_mode_img = pyqtSignal(dict)
 
     def __init__(self):
         super().__init__()
@@ -541,18 +491,12 @@ class Worker(QObject):
                 break
 
             img_data = self.camera.retrieveOneImg()  # retrieve image from camera buffer
-            img_data2 = self.camera.retrieveOneImg()
-            img_data3 = self.camera.retrieveOneImg()
             if img_data is None:
                 continue
-            else:#wait to test
+            else:
                 timestamp = datetime.datetime.now()
                 if settings.widget_params["Image Display Setting"]["mode"] == 2:
-                    self.sig_hardware_mode_img1.emit({'img_name': str(timestamp), 'img_data': Helper.split_list(img_data)})
-                    timestamp = datetime.datetime.now()
-                    self.sig_hardware_mode_img2.emit({'img_name': str(timestamp), 'img_data': Helper.split_list(img_data2)})
-                    timestamp = datetime.datetime.now()
-                    self.sig_hardware_mode_img3.emit({'img_name': str(timestamp), 'img_data': Helper.split_list(img_data3)})
+                    self.sig_hardware_mode_img.emit({'img_name': str(timestamp), 'img_data': Helper.split_list(img_data)})
                 else:
                     self.sig_video_mode_img.emit({'img_name': str(timestamp), 'img_data': Helper.split_list(img_data)})
                     # set a appropriate refresh value
@@ -561,7 +505,6 @@ class Worker(QObject):
 
     def abort(self):
         self.__abort = True
-
 
 def start_main_win():
     app = QApplication(sys.argv)
