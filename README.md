@@ -3,8 +3,8 @@ work unit: South China normal university, school of physics and telecommunicatio
 
 python version : 3.6
 
-*The library to install*
+The library to install：
 PyCapture2
-PyQt5  numpy  sys  PIL  time  pathlib  datetime  scipy  math  os  logging  pyqtgraph  queue
+PyQt5  numpy  PIL  time  pathlib  datetime  scipy  logging  pyqtgraph  queue
 
 
