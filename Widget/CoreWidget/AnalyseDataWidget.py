@@ -19,14 +19,17 @@ class ImgAnalysisSetting(QWidget):
 
         ToPwrLabel = QLabel('toPwr')
         self.ToPwr = QDoubleSpinBox()
+        self.ToPwr.setMaximum(999)
         self.ToPwr.setMinimum(0)
         self.ToPwr.setSingleStep(1)
         DetuLabel = QLabel('Detu')
         self.Detu = QDoubleSpinBox()
+        self.Detu.setMaximum(999)
         self.Detu.setMinimum(0)
         self.Detu.setSingleStep(1)
         DiaLabel = QLabel('Dia')
         self.Dia = QDoubleSpinBox()
+        self.Dia.setMaximum(999)
         self.Dia.setMinimum(0)
         self.Dia.setSingleStep(1)
 
