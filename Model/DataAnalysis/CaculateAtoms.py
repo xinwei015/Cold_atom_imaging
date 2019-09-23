@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.optimize import curve_fit
 import math
+from Utilities.Helper import settings
 
 def crosseSectionDraw(MagStatus, MagFactor, CCDPixelSize, CursorPos, tmpfactor, GSFittingStatue,ROILength, img):
     """
@@ -126,9 +127,9 @@ def calculateAtom(TotalPhotons):
     #
     # ROIImg = img[first_pos[0]:second_pos[0], first_pos[1]:second_pos[1]]
     # TotalPhotons = round(tmpfactor * np.sum(np.sum(ROIImg)))
-    MotPower = 110
-    MOTBeamOD = 14
-    MOTDetuning = 6
+    MotPower = settings.widget_params["Analyse Data Setting"]["ToPwr"]
+    MOTBeamOD = settings.widget_params["Analyse Data Setting"]["Dia"]
+    MOTDetuning = settings.widget_params["Analyse Data Setting"]["Detu"]
     # ROInumPx = np.shape(ROIImg)[0] * np.shape(ROIImg)[1]
     quantumeff = 0.56
     exposureTime = 10
