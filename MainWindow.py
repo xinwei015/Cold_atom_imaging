@@ -170,9 +170,9 @@ class TestMainWindow(QMainWindow):
             self.thread = QThread()
             self.worker.moveToThread(self.thread)
             self.worker.sig_video_mode_img.connect(self.update_main_plot_win)
-            self.worker.sig_hardware_mode_img.connect(self.update_image_queue)
-#             self.worker.sig_hardware_mode_img2.connect(self.update_image_queue)
-#             self.worker.sig_hardware_mode_img3.connect(self.update_image_queue)
+            self.worker.sig_hardware_mode_img1.connect(self.update_image_queue)
+            self.worker.sig_hardware_mode_img2.connect(self.update_image_queue)
+            self.worker.sig_hardware_mode_img3.connect(self.update_image_queue)
             # control worker:
             self.sig_abort_workers.connect(self.worker.abort)
             self.thread.started.connect(self.worker.work)
@@ -212,9 +212,9 @@ class TestMainWindow(QMainWindow):
                 self.thread = QThread()
                 self.worker.moveToThread(self.thread)
                 self.worker.sig_video_mode_img.connect(self.update_main_plot_win)
-                self.worker.sig_hardware_mode_img.connect(self.update_image_queue)
-#                 self.worker.sig_hardware_mode_img2.connect(self.update_image_queue)
-#                 self.worker.sig_hardware_mode_img3.connect(self.update_image_queue)
+                self.worker.sig_hardware_mode_img1.connect(self.update_image_queue)
+                self.worker.sig_hardware_mode_img2.connect(self.update_image_queue)
+                self.worker.sig_hardware_mode_img3.connect(self.update_image_queue)
                 # control worker:
                 self.sig_abort_workers.connect(self.worker.abort)
                 self.thread.started.connect(self.worker.work)
@@ -245,9 +245,9 @@ class TestMainWindow(QMainWindow):
             self.thread = QThread()
             self.worker.moveToThread(self.thread)
             self.worker.sig_video_mode_img.connect(self.update_main_plot_win)
-            self.worker.sig_hardware_mode_img.connect(self.update_image_queue)
-#             self.worker.sig_hardware_mode_img2.connect(self.update_image_queue)
-#             self.worker.sig_hardware_mode_img3.connect(self.update_image_queue)
+            self.worker.sig_hardware_mode_img1.connect(self.update_image_queue)
+            self.worker.sig_hardware_mode_img2.connect(self.update_image_queue)
+            self.worker.sig_hardware_mode_img3.connect(self.update_image_queue)
             # control worker:
             self.sig_abort_workers.connect(self.worker.abort)
             self.thread.started.connect(self.worker.work)
@@ -459,13 +459,63 @@ class TestMainWindow(QMainWindow):
         print("update image queue")
 
 
+# class Worker(QObject):
+#     """
+#     Must derive from QObject in order to emit signals, connect slots to other signals, and operate in a QThread.
+#     """
+#
+#     sig_video_mode_img = pyqtSignal(dict)
+#     sig_hardware_mode_img = pyqtSignal(dict)
+#
+#     def __init__(self):
+#         super().__init__()
+#         self.camera = Chameleon()
+#         self.camera.initializeCamera(settings.instrument_params["Camera"]["index"])
+#         self.camera.setAcquisitionMode(settings.widget_params["Image Display Setting"]["mode"])
+#
+#         self.camera.setExposure(settings.instrument_params["Camera"]["exposure time"])
+#         self.camera.setShutter(settings.instrument_params["Camera"]["shutter time"])
+#         self.camera.setGain(settings.instrument_params["Camera"]["gain value"])
+#         # set a low grab timeout to avoid crash when retrieve image.
+#         self.camera.set_grab_timeout(grab_timeout=10)
+#         self.__abort = False
+#
+#     @pyqtSlot()
+#     def work(self):
+#         print("camera start work")
+#         self.camera.startAcquisition()
+#         while True:
+#             # check if we need to abort the loop; need to process events to receive signals;
+#             QApplication.processEvents()  # this could cause change to self.__abort
+#             if self.__abort:
+#                 break
+#
+#             img_data = self.camera.retrieveOneImg()  # retrieve image from camera buffer
+#             if img_data is None:
+#                 continue
+#             else:
+#                 timestamp = datetime.datetime.now()
+#                 if settings.widget_params["Image Display Setting"]["mode"] == 2:
+#                     self.sig_hardware_mode_img.emit({'img_name': str(timestamp), 'img_data': Helper.split_list(img_data)})
+#                 else:
+#                     self.sig_video_mode_img.emit({'img_name': str(timestamp), 'img_data': Helper.split_list(img_data)})
+#                     # set a appropriate refresh value
+#                     time.sleep(0.1)
+#         self.camera.stopCamera()
+#
+#     def abort(self):
+#         self.__abort = True
+
+#just for test
 class Worker(QObject):
     """
     Must derive from QObject in order to emit signals, connect slots to other signals, and operate in a QThread.
     """
 
     sig_video_mode_img = pyqtSignal(dict)
-    sig_hardware_mode_img = pyqtSignal(dict)
+    sig_hardware_mode_img1 = pyqtSignal(dict)
+    sig_hardware_mode_img2 = pyqtSignal(dict)
+    sig_hardware_mode_img3 = pyqtSignal(dict)
 
     def __init__(self):
         super().__init__()
@@ -484,27 +534,66 @@ class Worker(QObject):
     def work(self):
         print("camera start work")
         self.camera.startAcquisition()
+        # img_data1 =[]
+        # img_data2 =[]
+        # img_data3 =[]
         while True:
             # check if we need to abort the loop; need to process events to receive signals;
             QApplication.processEvents()  # this could cause change to self.__abort
             if self.__abort:
                 break
 
-            img_data = self.camera.retrieveOneImg()  # retrieve image from camera buffer
-            if img_data is None:
-                continue
+                # timestamp = datetime.datetime.now()
+            if settings.widget_params["Image Display Setting"]["mode"] == 2:
+                while True:
+                    if self.__abort:
+                        break
+                    QApplication.processEvents()
+                    img_data1 = self.camera.retrieveOneImg()
+                    if img_data1 is None:
+                        continue
+                    else:
+                        timestamp1 = datetime.datetime.now()
+                        break
+                while True:
+                    if self.__abort:
+                        break
+                    QApplication.processEvents()
+                    img_data2 = self.camera.retrieveOneImg()
+                    if img_data2 is None:
+                        continue
+                    else:
+                        timestamp2 = datetime.datetime.now()
+                        break
+                while True:
+                    if self.__abort:
+                        break
+                    QApplication.processEvents()
+                    img_data3 = self.camera.retrieveOneImg()
+                    if img_data3 is None:
+                        continue
+                    else:
+                        timestamp3 = datetime.datetime.now()
+                        break
+
+                self.sig_hardware_mode_img1.emit({'img_name': str(1.)+str(timestamp1), 'img_data': Helper.split_list(img_data1)})
+                self.sig_hardware_mode_img2.emit({'img_name': str(2.)+str(timestamp2), 'img_data': Helper.split_list(img_data2)})
+                self.sig_hardware_mode_img3.emit({'img_name': str(3.)+str(timestamp3), 'img_data': Helper.split_list(img_data3)})
             else:
                 timestamp = datetime.datetime.now()
-                if settings.widget_params["Image Display Setting"]["mode"] == 2:
-                    self.sig_hardware_mode_img.emit({'img_name': str(timestamp), 'img_data': Helper.split_list(img_data)})
-                else:
-                    self.sig_video_mode_img.emit({'img_name': str(timestamp), 'img_data': Helper.split_list(img_data)})
-                    # set a appropriate refresh value
-                    time.sleep(0.1)
+                img_data1 = self.camera.retrieveOneImg()
+                # print(type(img_data1))   # PyCapture2.Image
+
+                if img_data1 is None:
+                    continue
+                self.sig_video_mode_img.emit({'img_name': str(timestamp), 'img_data': Helper.split_list(img_data1)})
+                # set a appropriate refresh value
+                time.sleep(0.1)
         self.camera.stopCamera()
 
     def abort(self):
         self.__abort = True
+
 
 def start_main_win():
     app = QApplication(sys.argv)
