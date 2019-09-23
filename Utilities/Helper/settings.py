@@ -7,7 +7,7 @@ def inintParams():
             "magStatus": False,
             "imgSource": "disk",  # default is disk, once click the start experiment button, then change to camera
             "mode": 0,  # 0 is video mode; 2 is hardware mode
-            "magValue": 2,
+            "magValue": 5.1,
             "pfMin": 20,
             "pfMax": 200,
             "img_stack_num": 4
@@ -15,9 +15,9 @@ def inintParams():
         "Analyse Data Setting": {
             "roiStatus": False,
             "add_cross_axes": False,
-            "ToPwr": 10,
-            "Detu": 100,
-            "Dia": 100,
+            "ToPwr": 110,
+            "Detu": 6,
+            "Dia": 14,
         },
         "Miscellanea": {
             "MagStatus": False,
