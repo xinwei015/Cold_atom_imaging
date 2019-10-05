@@ -47,7 +47,7 @@ class TestMainWindow(QMainWindow):
 
         ### CREATE WIDGET ###
         # global parameters
-        settings.inintParams()  #?
+        settings.inintParams()
 
         self.plot_main_window = PlotMainWindow()
         self.setCentralWidget(self.plot_main_window)# set central
@@ -66,6 +66,9 @@ class TestMainWindow(QMainWindow):
 
         # image display setting dock
         self.img_display_setting = ImgDisplaySetting()
+        self.img_display_setting.img_sub.connect(self.plot_main_window.img_plot2)
+        self.img_display_setting.img_sub2.connect(self.plot_main_window.img_plot3)
+
         # create a QDockWidget
         displaySettingDockWidget = QDockWidget("Display Setting", self)
         displaySettingDockWidget.setObjectName("displaySettingDockWidget")
@@ -83,6 +86,8 @@ class TestMainWindow(QMainWindow):
         analyseDataDockWidget.setWidget(self.img_analyse_setting)
         self.addDockWidget(Qt.RightDockWidgetArea, analyseDataDockWidget)
         self.windowMenu.addAction(analyseDataDockWidget.toggleViewAction())
+
+        self.img_analyse_setting.prefix_text.editingFinished.connect(self.editFinished)
 
         # camera setting dock
         self.camera_setting = CameraOption()
@@ -140,15 +145,48 @@ class TestMainWindow(QMainWindow):
                                                       tip="Load previous images to image stack")
 
         self.SaveImgAction = Helper.create_action(self,
-                                                       "Save Image",
+                                                       "Save all stack images",
                                                        slot=self.file_save_imgs,
                                                        shortcut=None,
                                                        icon=None,
                                                        tip="Save image stack's images")
 
-        self.fileMenu.addAction(self.LoadfolderAction)
+        self.SaveMainImgAction = Helper.create_action(self,
+                                                  "Save MainWindow's images",
+                                                  slot=self.Mainwindowfile_save_imgs,
+                                                  shortcut=None,
+                                                  icon=None,
+                                                  tip="Save MainWidnow's images")
+
+        self.SetpathAction = Helper.create_action(self,
+                                                      "Set the default save path",
+                                                      slot=self.Setpath,
+                                                      shortcut=None,
+                                                      icon=None,
+                                                      tip="Set the default save path")
+
+        self.AbsorbImageAction = Helper.create_action(self,
+                                                  "Absorb Image",
+                                                  slot=self.img_analyse_setting.absorb_setting,
+                                                  shortcut=None,
+                                                  icon=None,
+                                                  tip="Processing absorption imaging")
+
+        self.PrefixsettingAction = Helper.create_action(self,
+                                                      "Prefix setting",
+                                                      slot=self.img_analyse_setting.prefix_setting,
+                                                      shortcut=None,
+                                                      icon=None,
+                                                      tip="Prefix setting")
+
         self.fileMenu.addAction(self.LoadImgAction)
+        self.fileMenu.addAction(self.LoadfolderAction)
+        self.fileMenu.addAction(self.SaveMainImgAction)
         self.fileMenu.addAction(self.SaveImgAction)
+        self.optionMenu.addAction(self.SetpathAction)
+        self.optionMenu.addAction(self.AbsorbImageAction)
+        self.optionMenu.addAction(self.PrefixsettingAction)
+
 
         # queue for update main window when camera is in video mode
         self.acquiring = False
@@ -158,6 +196,11 @@ class TestMainWindow(QMainWindow):
         self.connect_slot2signal()
         self.setWindowIcon(QIcon('images/icon/UALab.png'))
         self.show()
+
+    def editFinished(self):
+        settings.widget_params["Analyse Data Setting"]["Prefix"] = str(self.img_analyse_setting.prefix_text.text())
+        # print(settings.widget_params["Analyse Data Setting"]["Prefix"])
+        # print(type(settings.widget_params["Analyse Data Setting"]["Prefix"]))
 
     def change_camera_params(self):
         self.camera_setting.apply_button.setEnabled(False)
@@ -170,9 +213,7 @@ class TestMainWindow(QMainWindow):
             self.thread = QThread()
             self.worker.moveToThread(self.thread)
             self.worker.sig_video_mode_img.connect(self.update_main_plot_win)
-            self.worker.sig_hardware_mode_img1.connect(self.update_image_queue)
-            self.worker.sig_hardware_mode_img2.connect(self.update_image_queue)
-            self.worker.sig_hardware_mode_img3.connect(self.update_image_queue)
+            self.worker.sig_hardware_mode_img.connect(self.update_image_queue)
             # control worker:
             self.sig_abort_workers.connect(self.worker.abort)
             self.thread.started.connect(self.worker.work)
@@ -186,7 +227,7 @@ class TestMainWindow(QMainWindow):
                 self.sig_abort_workers.emit()
                 self.thread.quit()  # this will quit **as soon as thread event loop unblocks**
                 self.thread.wait()  # <- so you need to wait for it to *actually* quit
-                print("camera thread quit")
+                # print("camera thread quit")
                 if mode.text() == 'video mode':
                     settings.widget_params["Image Display Setting"]["mode"] = 0
                     self.img_display_setting.hardware_mode.setEnabled(True)
@@ -196,6 +237,7 @@ class TestMainWindow(QMainWindow):
                     self.camera_setting.camera_further_setting.gain_value.setEnabled(True)
                     self.camera_setting.camera_further_setting.exposure_time.setEnabled(True)
                     self.camera_setting.camera_further_setting.shutter_time.setEnabled(True)
+                    print('video mode')
 
                 elif mode.text() == 'hardware mode':
                     settings.widget_params["Image Display Setting"]["mode"] = 2
@@ -203,23 +245,22 @@ class TestMainWindow(QMainWindow):
                     self.img_display_setting.video_mode.setChecked(False)
                     self.img_display_setting.video_mode.setEnabled(True)
                     self.camera_setting.apply_button.setEnabled(False)
-                    self.camera_setting.apply_button.setEnabled(False)
                     self.camera_setting.camera_further_setting.gain_value.setEnabled(False)
                     self.camera_setting.camera_further_setting.exposure_time.setEnabled(False)
                     self.camera_setting.camera_further_setting.shutter_time.setEnabled(False)
+                    # self.img_display_setting.video_mode.setChecked(True)
+                    print('hardware mode')
 
                 self.worker = Worker()
                 self.thread = QThread()
                 self.worker.moveToThread(self.thread)
                 self.worker.sig_video_mode_img.connect(self.update_main_plot_win)
-                self.worker.sig_hardware_mode_img1.connect(self.update_image_queue)
-                self.worker.sig_hardware_mode_img2.connect(self.update_image_queue)
-                self.worker.sig_hardware_mode_img3.connect(self.update_image_queue)
+                self.worker.sig_hardware_mode_img.connect(self.update_image_queue)
                 # control worker:
                 self.sig_abort_workers.connect(self.worker.abort)
                 self.thread.started.connect(self.worker.work)
                 self.thread.start()  # this will emit 'started' and start thread's event loop
-            print("camera is in new mode")
+            # print("camera is in new mode")
 
     def start_exp(self):
         """
@@ -233,7 +274,9 @@ class TestMainWindow(QMainWindow):
 
             self.LoadfolderAction.setEnabled(False)#CANNOT LOAD AND SAVE
             self.SaveImgAction.setEnabled(False)
+            self.SaveMainImgAction.setEnabled(False)
             self.LoadImgAction.setEnabled(False)
+            self.camera_setting.AbsTriger.setEnabled(False)
 
             self.img_display_setting.video_mode.setEnabled(True)
             self.img_display_setting.hardware_mode.setEnabled(True)
@@ -245,9 +288,7 @@ class TestMainWindow(QMainWindow):
             self.thread = QThread()
             self.worker.moveToThread(self.thread)
             self.worker.sig_video_mode_img.connect(self.update_main_plot_win)
-            self.worker.sig_hardware_mode_img1.connect(self.update_image_queue)
-            self.worker.sig_hardware_mode_img2.connect(self.update_image_queue)
-            self.worker.sig_hardware_mode_img3.connect(self.update_image_queue)
+            self.worker.sig_hardware_mode_img.connect(self.update_image_queue)
             # control worker:
             self.sig_abort_workers.connect(self.worker.abort)
             self.thread.started.connect(self.worker.work)
@@ -259,10 +300,17 @@ class TestMainWindow(QMainWindow):
             self.camera_setting.further_setting.setEnabled(True)
             self.camera_setting.apply_button.setEnabled(True)
             settings.widget_params["Image Display Setting"]["imgSource"] = "camera"
-            self.img_display_setting.video_mode.setChecked(True)
-            self.img_display_setting.video_mode.setEnabled(False)
-            settings.widget_params["Image Display Setting"]["mode"] = 0
             self.acquiring = True
+
+            if settings.widget_params["Analyse Data Setting"]["AbsTrigerStatus"]:
+                self.img_display_setting.hardware_mode.setChecked(True)
+                self.img_display_setting.hardware_mode.setEnabled(False)
+                self.img_display_setting.video_mode.setEnabled(False)
+            else:
+                settings.widget_params["Image Display Setting"]["mode"] = 0
+                self.img_display_setting.video_mode.setChecked(True)
+                self.img_display_setting.video_mode.setEnabled(False)
+            # self.acquiring = True
             self.stop_exp_action.setEnabled(True)
         else:
             print("select a camera for further experiment")
@@ -278,20 +326,26 @@ class TestMainWindow(QMainWindow):
             self.thread.quit()  # this will quit **as soon as thread event loop unblocks**
             self.thread.wait()  # <- so you need to wait for it to *actually* quit
 
+        self.camera_setting.AbsTriger.setEnabled(True)
+        settings.widget_params["Image Display Setting"]["mode"] = 0
+
         self.acquiring = False
         self.start_exp_action.setEnabled(True)   # already stop can start
         self.LoadfolderAction.setEnabled(True)  #can load
         self.SaveImgAction.setEnabled(True)  #can save
+        self.SaveMainImgAction.setEnabled(True)
         self.LoadImgAction.setEnabled(True)
         self.clear_img_stack_action.setEnabled(True)  #can clear stack
         self.clear_main_win_action.setEnabled(True)   #can clear all
         self.camera_setting.cb.setEnabled(True)
         self.camera_setting.further_setting.setEnabled(False)
+        settings.widget_params["Image Display Setting"]["imgSource"] = "disk"
 
         self.img_display_setting.video_mode.setChecked(False)
         self.img_display_setting.hardware_mode.setChecked(False)
         self.img_display_setting.video_mode.setEnabled(False)
         self.img_display_setting.hardware_mode.setEnabled(False)
+
 
     def connect_slot2signal(self):
 
@@ -313,20 +367,54 @@ class TestMainWindow(QMainWindow):
         # plot main window widget
         self.plot_main_window.atom_number.connect(self.result_dock.change_atom_num)
         self.plot_main_window.Pxatom_num.connect(self.result_dock.change_Pxatom_num)
+        self.plot_main_window.TotalPhotons_num.connect(self.result_dock.change_TotalPhotons_num)
 
         # analyse data widget
         self.img_analyse_setting.roi.stateChanged.connect(
-            lambda: self.plot_main_window.add_roi(self.img_analyse_setting.roi, self.img_analyse_setting.cross_axes)
-        )
+            lambda: self.plot_main_window.add_roi(self.img_analyse_setting.roi, self.img_analyse_setting.cross_axes))
         self.img_analyse_setting.cross_axes.stateChanged.connect(
-            lambda: self.plot_main_window.add_cross_axes(self.img_analyse_setting.cross_axes)
-        )
+            lambda: self.plot_main_window.add_cross_axes(self.img_analyse_setting.cross_axes))
+        self.camera_setting.AbsTriger.stateChanged.connect(
+            lambda: self.absclick(self.camera_setting.AbsTriger))
+        self.img_analyse_setting.auto_save.stateChanged.connect(
+            lambda: self.autosave(self.img_analyse_setting.auto_save))
 
         # camera setting widget
         self.camera_setting.apply_button.clicked.connect(self.camera_setting.camera_further_setting.change_exposure)
         self.camera_setting.apply_button.clicked.connect(self.camera_setting.camera_further_setting.change_gain)
         self.camera_setting.apply_button.clicked.connect(self.camera_setting.camera_further_setting.change_shutter)
         self.camera_setting.apply_button.clicked.connect(self.change_camera_params)
+
+    def autosave(self,auto_save_state):
+        if auto_save_state.isChecked():
+            settings.widget_params["Analyse Data Setting"]["autoStatus"] = True
+
+        else:
+            settings.widget_params["Analyse Data Setting"]["autoStatus"] = False
+        # print(settings.widget_params["Analyse Data Setting"]["autoStatus"])
+
+    def absclick(self,abs_state):
+        if abs_state.isChecked():
+            P = 0
+            for i in range(settings.widget_params["Image Display Setting"]["img_stack_num"]):
+                plot_win = self.img_queue.plot_wins.get()
+                if plot_win.video.image is not None:
+                    P = P+1
+                self.img_queue.plot_wins.put(plot_win)
+            if P != 0:
+                print('clear the image stack first')
+                abs_state.setCheckState(0)
+                settings.widget_params["Analyse Data Setting"]["AbsTrigerStatus"] = False
+                return
+            else:
+                settings.widget_params["Analyse Data Setting"]["AbsTrigerStatus"] = True
+                settings.widget_params["Image Display Setting"]["mode"] = 2
+                print('Absorption imaging mode')
+        else:
+            settings.widget_params["Analyse Data Setting"]["AbsTrigerStatus"] = False
+            settings.widget_params["Image Display Setting"]["mode"] = 0
+            abs_state.setCheckState(0)
+        # print(settings.widget_params["Analyse Data Setting"]["AbsTrigerStatus"])
 
     def clear_img_stack(self):
         """
@@ -342,6 +430,11 @@ class TestMainWindow(QMainWindow):
             plot_win.clear_win()
             self.img_queue.plot_wins.put(plot_win)
 
+        settings.absimgData[0] = []  # Erase the last data
+        settings.absimgData[1] = []
+        settings.absimgData[2] = []
+        settings.absimgData[3] = []
+
     def clear_main_win(self):
         """
               clear main windows
@@ -351,6 +444,9 @@ class TestMainWindow(QMainWindow):
             print("video mode can't clear main window")
             return
         self.plot_main_window.clear_win()
+        settings.imgData["Img_photon_range"] = []
+        settings.imgData["Img_data"] = []
+
 
     ### LOAD CUSTOM SETTING FOR INSTRUMENT CONNECT AND PARAMETERS ###
 
@@ -359,10 +455,13 @@ class TestMainWindow(QMainWindow):
         save image stack's images to disk
         :return:
         """
+        # try:
         fpath = IOHelper.get_config_setting('DATA_PATH')
         fpath = Path(fpath)
         dir_path = fpath.joinpath(str(datetime.datetime.now()).split('.')[0].replace(' ', '-').replace(':', '_'))
-        print("save images to {}".format(dir_path))
+        # print("save images to {}".format(dir_path))
+        if settings.m_path != []:
+            dir_path = settings.m_path
         if not dir_path.exists():
             dir_path.mkdir()
         for i in range(settings.widget_params["Image Display Setting"]["img_stack_num"]):
@@ -370,11 +469,53 @@ class TestMainWindow(QMainWindow):
             if plot_win.video.image is not None:
                 img_data = np.array(plot_win.video.image)
                 # load image name by path
-                img_name = (plot_win.img_label.text()).split('.')[0].replace(' ', '-').replace(':', '_')
-                img_data = Image.fromarray(img_data)
-                img_data.save(r"{}\{}.png".format(dir_path, img_name))
+                img_name1 = settings.widget_params["Analyse Data Setting"]["Prefix"]
+                img_name2 = (plot_win.img_label.text())[0:20].replace(' ', '~').replace(':', '').replace('-', '')
+                img_name = str(img_name1) + str(img_name2)
+                img_data = img_data[::-1]
+                # img_data = Image.fromarray(img_data)
+                # img_data.save(r"{}\{}.png".format(dir_path, img_name))
+                import numpy
+                numpy.savetxt(r"{}\{}.ndata".format(dir_path, img_name), img_data, fmt='%.2e', delimiter=' ',newline='\n', header='', footer='', comments=' ', encoding=None)
             self.img_queue.plot_wins.put(plot_win)
-        print("images have saved.")
+        print("save images to {}".format(dir_path))
+        # print("images have saved.")
+        # except OSError:
+        #     print("Only new version files can be saved.")
+
+    def Setpath(self):
+        mpath = QFileDialog.getExistingDirectory(self, "Set path")
+        settings.m_path = Path(mpath)
+        print(settings.m_path)
+
+
+    def Mainwindowfile_save_imgs(self):
+        # try:
+        if self.plot_main_window.img.image is None:
+            print("have no image in Mainwindow")
+            return
+        fpath = IOHelper.get_config_setting('DATA_PATH')
+        fpath = Path(fpath)
+        dir_path = fpath.joinpath(str(datetime.datetime.now())[2:].split('.')[0].replace(' ', '-').replace(':', '_'))
+        # print("save images to {}".format(dir_path))
+        if settings.m_path != []:
+            dir_path = settings.m_path
+        if not dir_path.exists():
+            dir_path.mkdir()
+        img_data = np.array(self.plot_main_window.img.image)
+        # load image name by path
+        img_name1 = settings.widget_params["Analyse Data Setting"]["Prefix"]
+        img_name2 = (self.plot_main_window.img_label.text())[0:20].replace(' ', '~').replace(':', '').replace('-', '')
+        img_name = str(img_name1) + str(img_name2)
+        img_data = img_data[::-1]
+        # img_data = Image.fromarray(img_data)
+        # img_data.save(r"{}\{}.png".format(dir_path, img_name))
+        import numpy
+        numpy.savetxt(r"{}\{}.ndata".format(dir_path, img_name), img_data, fmt='%.2e', delimiter=' ', newline='\n',header='', footer='', comments=' ',encoding=None)
+        print("save images to {}".format(dir_path))
+        # print("images have saved.")
+        # except OSError:
+        #     print('Only new version files can be saved.')
 
     def file_load_imgs(self):
         """
@@ -394,8 +535,13 @@ class TestMainWindow(QMainWindow):
             if win_index == len(img_paths):
                 break
             plot_win = self.img_queue.plot_wins.get()
-            plot_win.img_plot(self.load_img_dict(img_paths[win_index]))
-            self.img_queue.plot_wins.put(plot_win)
+            try:
+                plot_win.img_plot(self.load_img_dict(img_paths[win_index]))
+                self.img_queue.plot_wins.put(plot_win)
+            except TypeError:
+                return
+            except PermissionError:
+                return
 
     def load_img2stack(self):#load single picture
         """
@@ -406,7 +552,9 @@ class TestMainWindow(QMainWindow):
 
         img_fpath = QFileDialog.getExistingDirectory(self, "Open File", fpath)  # name path
         img_file = Path(img_fpath)
-        img_paths = list(img_file.glob('*.png'))
+        img_path1 = list(img_file.glob('*.png'))
+        img_path2 = list(img_file.glob('*.data'))
+        img_paths = img_path1 + img_path2
 
         for win_index in range(settings.widget_params["Image Display Setting"]["img_stack_num"]):
             if win_index == len(img_paths):
@@ -418,8 +566,34 @@ class TestMainWindow(QMainWindow):
     ### MISCELLANY ###
 
     def load_img_dict(self, img_path):
-        img_data = np.array(Image.open(img_path))
+        # pathjud = str(img_path)
+        # pathjud = pathjud[len(pathjud) - 3:]   #Get the version of the file
+
+        # if pathjud == 'ata':
+        # settings.Type_of_file = 'data'
+        file = open(img_path)
+        linescontent = file.readlines()                     #Read the file as a behavior unit
+        rows = len(linescontent)                            #get the numbers fo line
+        lines = len(linescontent[0].strip().split(' '))
+        # print(rows)
+        # print(lines)
+        img_data = np.zeros((rows, lines))                  # Initialization matrix
+        row = 0
+        for line in linescontent:
+            line = line.strip().split(' ')
+            img_data[row, :] = line[:]
+            row += 1
+        file.close()
+        # else:
+        #     settings.Type_of_file = 'png'
+        #     imgarray = Image.open(img_path)
+        #     img_data = np.array(imgarray)
+        #     # print(type(imgarray))
+        #     # img_data = img_data[:,:,0]
+        #     # print(img_data.)
+
         img_data = img_data[::-1]
+        # print(img_data[0:10,1244:1254])
         # load image name by path
         img_name = img_path.stem
         img = {
@@ -453,69 +627,22 @@ class TestMainWindow(QMainWindow):
         self.plot_main_window.img_plot(img_dict)
 
     def update_image_queue(self, img_dict):   #hardware_mode do this
+        QApplication.processEvents()
         plot_win = self.img_queue.plot_wins.get()
         plot_win.img_plot(img_dict)
+        if settings.widget_params["Analyse Data Setting"]["autoStatus"] == True:
+            plot_win.save_image()
         self.img_queue.plot_wins.put(plot_win)
         print("update image queue")
 
 
-# class Worker(QObject):
-#     """
-#     Must derive from QObject in order to emit signals, connect slots to other signals, and operate in a QThread.
-#     """
-#
-#     sig_video_mode_img = pyqtSignal(dict)
-#     sig_hardware_mode_img = pyqtSignal(dict)
-#
-#     def __init__(self):
-#         super().__init__()
-#         self.camera = Chameleon()
-#         self.camera.initializeCamera(settings.instrument_params["Camera"]["index"])
-#         self.camera.setAcquisitionMode(settings.widget_params["Image Display Setting"]["mode"])
-#
-#         self.camera.setExposure(settings.instrument_params["Camera"]["exposure time"])
-#         self.camera.setShutter(settings.instrument_params["Camera"]["shutter time"])
-#         self.camera.setGain(settings.instrument_params["Camera"]["gain value"])
-#         # set a low grab timeout to avoid crash when retrieve image.
-#         self.camera.set_grab_timeout(grab_timeout=10)
-#         self.__abort = False
-#
-#     @pyqtSlot()
-#     def work(self):
-#         print("camera start work")
-#         self.camera.startAcquisition()
-#         while True:
-#             # check if we need to abort the loop; need to process events to receive signals;
-#             QApplication.processEvents()  # this could cause change to self.__abort
-#             if self.__abort:
-#                 break
-#
-#             img_data = self.camera.retrieveOneImg()  # retrieve image from camera buffer
-#             if img_data is None:
-#                 continue
-#             else:
-#                 timestamp = datetime.datetime.now()
-#                 if settings.widget_params["Image Display Setting"]["mode"] == 2:
-#                     self.sig_hardware_mode_img.emit({'img_name': str(timestamp), 'img_data': Helper.split_list(img_data)})
-#                 else:
-#                     self.sig_video_mode_img.emit({'img_name': str(timestamp), 'img_data': Helper.split_list(img_data)})
-#                     # set a appropriate refresh value
-#                     time.sleep(0.1)
-#         self.camera.stopCamera()
-#
-#     def abort(self):
-#         self.__abort = True
-
-#just for test
 class Worker(QObject):
     """
     Must derive from QObject in order to emit signals, connect slots to other signals, and operate in a QThread.
     """
 
     sig_video_mode_img = pyqtSignal(dict)
-    sig_hardware_mode_img1 = pyqtSignal(dict)
-    sig_hardware_mode_img2 = pyqtSignal(dict)
-    sig_hardware_mode_img3 = pyqtSignal(dict)
+    sig_hardware_mode_img = pyqtSignal(dict)
 
     def __init__(self):
         super().__init__()
@@ -532,63 +659,75 @@ class Worker(QObject):
 
     @pyqtSlot()
     def work(self):
-        print("camera start work")
+        print("camera start workt")
         self.camera.startAcquisition()
-        # img_data1 =[]
-        # img_data2 =[]
-        # img_data3 =[]
-        while True:
-            # check if we need to abort the loop; need to process events to receive signals;
-            QApplication.processEvents()  # this could cause change to self.__abort
-            if self.__abort:
-                break
-
-                # timestamp = datetime.datetime.now()
-            if settings.widget_params["Image Display Setting"]["mode"] == 2:
+        if settings.widget_params["Analyse Data Setting"]["AbsTrigerStatus"]:
+            # TestMainWindow().stop_exp_action.setEnabled(False)  # already stop, so connot stop
+            settings.absimgData[0] = []  #Erase the last data
+            settings.absimgData[1] = []
+            settings.absimgData[2] = []
+            settings.absimgData[3] = []
+            for i in range(3):
                 while True:
+                    QApplication.processEvents()  # this could cause change to self.__abort
                     if self.__abort:
-                        break
-                    QApplication.processEvents()
-                    img_data1 = self.camera.retrieveOneImg()
-                    if img_data1 is None:
-                        continue
-                    else:
-                        timestamp1 = datetime.datetime.now()
-                        break
-                while True:
-                    if self.__abort:
-                        break
-                    QApplication.processEvents()
-                    img_data2 = self.camera.retrieveOneImg()
-                    if img_data2 is None:
-                        continue
-                    else:
-                        timestamp2 = datetime.datetime.now()
-                        break
-                while True:
-                    if self.__abort:
-                        break
-                    QApplication.processEvents()
-                    img_data3 = self.camera.retrieveOneImg()
-                    if img_data3 is None:
-                        continue
-                    else:
-                        timestamp3 = datetime.datetime.now()
                         break
 
-                self.sig_hardware_mode_img1.emit({'img_name': str(1.)+str(timestamp1), 'img_data': Helper.split_list(img_data1)})
-                self.sig_hardware_mode_img2.emit({'img_name': str(2.)+str(timestamp2), 'img_data': Helper.split_list(img_data2)})
-                self.sig_hardware_mode_img3.emit({'img_name': str(3.)+str(timestamp3), 'img_data': Helper.split_list(img_data3)})
-            else:
+                    img_data = self.camera.retrieveOneImg()  # retrieve image from camera buffer
+                    if img_data is None:
+                        continue
+                    else:
+                        timestamp = datetime.datetime.now()
+                        self.sig_hardware_mode_img.emit({'img_name': str(timestamp)[2:], 'img_data': Helper.split_list(img_data)})
+                        settings.absimgData[i] = Helper.split_list(img_data)
+                        break
+            # time.sleep(2)
+            # self.camera.stopCamera()
+            # print(type(settings.absimgData[1]))
+            if settings.absimgData[0] != [] and settings.absimgData[1] !=[] and settings.absimgData[2] != []:
+                withatom = np.zeros((settings.absimgData[0].shape[0], settings.absimgData[0].shape[1]))
+                withoutatom = np.zeros((settings.absimgData[1].shape[0], settings.absimgData[1].shape[1]))
+                settings.absimgData[3] = np.zeros((settings.absimgData[1].shape[0], settings.absimgData[1].shape[1]))
+                print('In the calculation')
+                import warnings
+                warnings.filterwarnings("ignore")
+                for ii in range(settings.absimgData[1].shape[0]):
+                    for jj in range(settings.absimgData[1].shape[1]):
+                        withatom[ii,jj] = settings.absimgData[0][ii,jj] - settings.absimgData[2][ii,jj]####
+                        withoutatom[ii,jj] = settings.absimgData[1][ii,jj] - settings.absimgData[2][ii,jj]###
+
+                        if withoutatom[ii,jj] != 0:
+                            settings.absimgData[3][ii,jj] = withatom[ii,jj] / withoutatom[ii,jj]##########
+                        else:
+                            settings.absimgData[3][ii, jj] = 1
+
+                        if settings.absimgData[3][ii,jj] >= 1 or settings.absimgData[3][ii,jj] <= 0:
+                            settings.absimgData[3][ii, jj] = 1
+
+                        settings.absimgData[3][ii,jj] = -np.log(settings.absimgData[3][ii,jj])
+                # print(settings.absimgData[3][0:20,0:20])
+
                 timestamp = datetime.datetime.now()
-                img_data1 = self.camera.retrieveOneImg()
-                # print(type(img_data1))   # PyCapture2.Image
+                self.sig_hardware_mode_img.emit({'img_name': str(timestamp)[2:], 'img_data': settings.absimgData[3]})
+                # TestMainWindow.stop_exp_action.setEnabled(True)  # already stop, so connot stop
+        else:
+            while True:
+                # check if we need to abort the loop; need to process events to receive signals;
+                QApplication.processEvents()  # this could cause change to self.__abort
+                if self.__abort:
+                    break
 
-                if img_data1 is None:
+                img_data = self.camera.retrieveOneImg()  # retrieve image from camera buffer
+                if img_data is None:
                     continue
-                self.sig_video_mode_img.emit({'img_name': str(timestamp), 'img_data': Helper.split_list(img_data1)})
-                # set a appropriate refresh value
-                time.sleep(0.1)
+                else:
+                    timestamp = datetime.datetime.now()
+                    if settings.widget_params["Image Display Setting"]["mode"] == 2:
+                        self.sig_hardware_mode_img.emit({'img_name': str(timestamp)[2:], 'img_data': Helper.split_list(img_data)})
+                    else:
+                        self.sig_video_mode_img.emit({'img_name': str(timestamp)[2:], 'img_data': Helper.split_list(img_data)})
+                        # set a appropriate refresh value
+                        time.sleep(0.1)
         self.camera.stopCamera()
 
     def abort(self):
