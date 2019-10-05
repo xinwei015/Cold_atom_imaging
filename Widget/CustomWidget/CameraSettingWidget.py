@@ -10,26 +10,38 @@ class CameraOption(QWidget):
     def __init__(self):
         super(CameraOption, self).__init__()
 
-        layout = QHBoxLayout()
-        self.cb = QComboBox()
+        self.GroupBox1 = QGroupBox("Triger Setting")
+
+        layoutT = QVBoxLayout()#camera setting
+
+        layout1 = QHBoxLayout()#camera setting
+        self.AbsTriger = QCheckBox("AbsTriger", self)
+        layout1.addWidget(self.AbsTriger)
+
+        layout = QHBoxLayout()#camera setting
+        self.cb = QComboBox()#camera select
         layout.addWidget(self.cb)
         self.further_setting = QPushButton("further setting")
         layout.addWidget(self.further_setting)
-        self.setLayout(layout)
+
+        self.GroupBox1.setLayout(layout1)
+        layoutT.addWidget(self.GroupBox1)
+        layoutT.addLayout(layout)
+        self.setLayout(layoutT)
         self.further_setting.clicked.connect(self.camera_setting)
         # after click the start experiment button, then can change camera setting in detail
         self.further_setting.setEnabled(False)
 
-        self.d = QDialog()
+        self.d = QDialog()#create a dialog
         dialog_layout = QVBoxLayout()
         self.apply_button = QPushButton("Apply")
-        self.camera_further_setting = CameraSettingWidget()
+        self.camera_further_setting = CameraSettingWidget()  #set three parameters
         dialog_layout.addWidget(self.camera_further_setting)
         dialog_layout.addWidget(self.apply_button)
         self.d.setLayout(dialog_layout)
         camera_infos = Chameleon.getPortInfo()
         if camera_infos is not None:
-            self.cb.addItems(camera_infos)
+            self.cb.addItems(camera_infos)#get camera num
             # if detect cameras, default camera index is 0
             settings.instrument_params["Camera"]["index"] = 0
         else:
@@ -37,9 +49,8 @@ class CameraOption(QWidget):
             self.cb.setEnabled(False)
             return
         #setting widget size
-        screen = QtGui.QDesktopWidget().screenGeometry()
-        self.setFixedSize(screen.width()*34/100,screen.height()*8/100)
-
+        screen = QtGui.QDesktopWidget().screenGeometry()#Control window size
+        self.setFixedSize(screen.width()*34/100,screen.height()*12/100)
 
 
 
@@ -110,13 +121,13 @@ class CameraSettingWidget(QWidget):
 
     def change_shutter(self):
         settings.instrument_params["Camera"]["shutter time"] = self.shutter_time.value()
-        print("shutter time is ", settings.instrument_params["Camera"]["shutter time"])
+        # print("shutter time is ", settings.instrument_params["Camera"]["shutter time"])
 
     def change_exposure(self):
         settings.instrument_params["Camera"]["exposure time"] = self.exposure_time.value()
-        print("exposure time is ", settings.instrument_params["Camera"]["exposure time"])
+        # print("exposure time is ", settings.instrument_params["Camera"]["exposure time"])
 
     def change_gain(self):
         settings.instrument_params["Camera"]["gain value"] = self.gain_value.value()
-        print("gain value is ", settings.instrument_params["Camera"]["gain value"])
+        # print("gain value is ", settings.instrument_params["Camera"]["gain value"])
 
