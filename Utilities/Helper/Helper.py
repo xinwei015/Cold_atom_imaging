@@ -51,7 +51,12 @@ def split_list(image):
     img_rows = image.getRows()
     img_cols = image.getCols()
     img_data = image.getData()
+    # print(img_data)
+    # print(img_rows)
+    # print(img_cols)
     for i in range(img_rows):
         alist.append(img_data[i*img_cols:(i+1)*img_cols])
+    # print(np.array(alist))
+
     return np.array(alist)
 

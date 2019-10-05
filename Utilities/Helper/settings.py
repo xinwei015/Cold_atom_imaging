@@ -1,5 +1,5 @@
 def inintParams():
-    global widget_params, instrument_params, imgData
+    global widget_params, instrument_params, imgData, Type_of_file , absimgData, m_path, absimgDatas
     widget_params = {
         "Image Display Setting": {
             "bkgStatus": False,
@@ -8,16 +8,23 @@ def inintParams():
             "imgSource": "disk",  # default is disk, once click the start experiment button, then change to camera
             "mode": 0,  # 0 is video mode; 2 is hardware mode
             "magValue": 5.1,
-            "pfMin": 20,
-            "pfMax": 200,
-            "img_stack_num": 4
+            "pfMin": 0,
+            "pfMax": 1000,
+            "img_stack_num": 4,
+            "absimg_stack_num": 3
+        },
+        'calculate Setting':{
+            'mode':0
         },
         "Analyse Data Setting": {
+            "autoStatus": False,
             "roiStatus": False,
             "add_cross_axes": False,
+            "AbsTrigerStatus": False,
             "ToPwr": 110,
             "Detu": 6,
             "Dia": 14,
+            "Prefix":'Data',
         },
         "Miscellanea": {
             "MagStatus": False,
@@ -45,10 +52,26 @@ def inintParams():
     }
     imgData = {
         "BkgImg": [],  # contain the background image data when load from disk
+        "Img_data":[],
+        "Img_photon_range": [],
         "WI": [],
         "WO": [],
         # "ROI_size": [0,0]
         }
+    Img1 = []
+    Img2 = []
+    Img3 = []
+    Img4 = []
+    absimgData = [Img1,Img2,Img3,Img4]
+
+    Img1s = []
+    Img2s = []
+    Img3s = []
+    Img4s = []
+    absimgDatas = [Img1s, Img2s, Img3s, Img4s]
+
+    m_path = []
+    Type_of_file = 'png'
 
     print("Initialize parameters finished")
 
