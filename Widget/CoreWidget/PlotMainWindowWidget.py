@@ -11,6 +11,7 @@ class PlotMainWindow(QWidget):
 
     atom_number = pyqtSignal(object)
     Pxatom_num = pyqtSignal(object)
+    TotalPhotons_num = pyqtSignal(object)
 
 
     def __init__(self):
@@ -137,16 +138,21 @@ class PlotMainWindow(QWidget):
             # three channel data
             # atom_num = sum(sum(self.data[int(self.roi.pos()[1]):int(self.roi.pos()[1]+self.roi.size()[0]), int(self.roi.pos()[0]):int(self.roi.pos()[0]+self.roi.size()[1]), 1]))
             # TotalPhotons = 7.11e2   #for test
+            # global TotalPhotons ,calculatedata ,atom_num
             TotalPhotons = sum(sum(self.data[int(self.roi.pos()[1]):int(self.roi.pos()[1] + self.roi.size()[0]),int(self.roi.pos()[0]):int(self.roi.pos()[0] + self.roi.size()[1]), 1]))
             calculatedata = calculateAtom(TotalPhotons)
             atom_num = round(calculatedata[0])
         else:
             # single channel
-            atom_num = sum(sum(self.data[int(self.roi.pos()[1]):int(self.roi.pos()[1] + self.roi.size()[0]), int(self.roi.pos()[0]):int(self.roi.pos()[0] + self.roi.size()[1])]))
+            TotalPhotons = sum(sum(self.data[int(self.roi.pos()[1]):int(self.roi.pos()[1] + self.roi.size()[0]), int(self.roi.pos()[0]):int(self.roi.pos()[0] + self.roi.size()[1])]))
+            calculatedata = calculateAtom(TotalPhotons)
+            atom_num = round(calculatedata[0])
         self.atom_number.emit(atom_num)
+        TotalPhotons = round(TotalPhotons)
+        self.TotalPhotons_num.emit(TotalPhotons)
         ROIsize = self.roi.size()[0]*self.roi.size()[1]
         Pxatom_num = atom_num/(ROIsize)
-        Pxatom_num = round(Pxatom_num,5)
+        Pxatom_num = round(Pxatom_num,3)
         self.Pxatom_num.emit(Pxatom_num)
         # print(settings.imgData["ROI_size"])
 
@@ -161,7 +167,32 @@ class PlotMainWindow(QWidget):
         self.img_label.setText(img_dict['img_name'])
         self.data = img_dict['img_data']
         self.data_shape = self.data.shape
-        print("update image")
+        # print("update image")
+
+    def img_plot2(self):
+        if settings.imgData["BkgImg"] !=[] and settings.imgData["Img_data"] !=[]:
+            settings.imgData["Img_data"] = settings.imgData["Img_data"] - settings.imgData["BkgImg"]
+            self.img.setImage(settings.imgData["Img_data"])
+            self.data = settings.imgData["Img_data"]
+            self.data_shape = settings.imgData["Img_data"].shape
+        else:
+            print('Please check again')
+
+    def img_plot3(self):
+        if settings.imgData["Img_data"] != []:
+            settings.imgData["Img_photon_range"] = np.zeros((settings.imgData["Img_data"].shape[0], settings.imgData["Img_data"].shape[1]))
+            for i in range(settings.imgData["Img_data"].shape[0]):
+                for j in range(settings.imgData["Img_data"].shape[1]):
+                    if settings.imgData["Img_data"][i,j] >= settings.widget_params["Image Display Setting"]["pfMin"] and settings.imgData["Img_data"][i,j] <= settings.widget_params["Image Display Setting"]["pfMax"]:
+                        settings.imgData["Img_photon_range"][i,j] = settings.imgData["Img_data"][i,j]
+                    else:
+                        settings.imgData["Img_photon_range"][i, j] = 0
+            self.img.setImage(settings.imgData["Img_photon_range"])
+            self.data = settings.imgData["Img_photon_range"]
+            self.data_shape = settings.imgData["Img_photon_range"].shape
+        else:
+            print('No image')
+
 
     def clear_win(self):
         self.viewBox.clear()

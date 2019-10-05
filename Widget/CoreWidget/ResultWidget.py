@@ -1,6 +1,9 @@
 import PyQt5.QtWidgets as QtWidgets
 from PyQt5.QtGui import QFont
 from PyQt5 import QtGui
+from PyQt5.QtWidgets import *
+from Utilities.Helper import settings
+
 
 
 class ResultWidget(QtWidgets.QWidget):
@@ -14,6 +17,19 @@ class ResultWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(ResultWidget, self).__init__(parent)
 
+        self.flurence = QCheckBox('flurence',self)
+        self.flurence.stateChanged.connect(lambda: self.change_cal(self.flurence))
+        self.absorbtion = QCheckBox('absorbtion',self)
+        self.absorbtion.stateChanged.connect(lambda: self.change_cal(self.absorbtion))
+        self.fLayout = QtWidgets.QVBoxLayout()
+        self.fLayout.addWidget(self.flurence)
+        self.fLayout.addWidget(self.absorbtion)
+        # self.fLayout.setGeometry(300, 300)
+        self.flurence.setChecked(True)
+        self.flurence.setEnabled(False)
+        # self.absorbtion.setChecked(False)
+        # self.absorbtion.setEnabled(True)
+
         self.atom_num_label = QtWidgets.QLabel('Atom#')
         self.atom_num_label.setFont(QFont("Roman times", 18))
         self.atom_num = QtWidgets.QLabel(str(0))
@@ -22,25 +38,61 @@ class ResultWidget(QtWidgets.QWidget):
         self.hLayout1.addWidget(self.atom_num_label)
         self.hLayout1.addWidget(self.atom_num)
 
+        self.TotalPhotons_num_label = QtWidgets.QLabel('TotalPhotons#')
+        self.TotalPhotons_num_label.setFont(QFont("Roman times", 18))
+        self.TotalPhotons_num = QtWidgets.QLabel(str(0))
+        self.TotalPhotons_num.setFont(QFont("Roman times", 24))
+        self.hLayout3 = QtWidgets.QHBoxLayout()
+        self.hLayout3.addWidget(self.TotalPhotons_num_label)
+        self.hLayout3.addWidget(self.TotalPhotons_num)
+
         self.atom_numpx_label = QtWidgets.QLabel('Atom#/px')
-        self.atom_numpx_label.setFont(QFont("Roman times", 14))
+        self.atom_numpx_label.setFont(QFont("Roman times", 18))
         self.atom_numpx = QtWidgets.QLabel(str(0))
-        self.atom_numpx.setFont(QFont("Roman times", 20))
+        self.atom_numpx.setFont(QFont("Roman times", 24))
         self.hLayout2 = QtWidgets.QHBoxLayout()
         self.hLayout2.addWidget(self.atom_numpx_label)
         self.hLayout2.addWidget(self.atom_numpx)
 
         self.wLayout = QtWidgets.QVBoxLayout()
+        self.wLayout.addLayout(self.hLayout3)
         self.wLayout.addLayout(self.hLayout1)
         self.wLayout.addLayout(self.hLayout2)
-        self.setLayout(self.wLayout)
+
+        self.totalLayout = QtWidgets.QHBoxLayout()
+        self.totalLayout.addLayout(self.fLayout)
+        self.totalLayout.addLayout(self.wLayout)
+        self.totalLayout.setStretchFactor(self.fLayout, 1)
+        self.totalLayout.setStretchFactor(self.wLayout, 4)
+        self.setLayout(self.totalLayout)
 
         screen = QtGui.QDesktopWidget().screenGeometry()
         self.setFixedSize(screen.width()*34/100,screen.height()*19/100)
 
+    def change_cal(self,mode):
+        if mode.isChecked():
+            if mode.text() == 'flurence':
+                settings.widget_params["calculate Setting"]["mode"] = 0
+                self.absorbtion.setEnabled(True)
+                self.absorbtion.setChecked(False)
+                self.flurence.setEnabled(False)
+                # print(settings.widget_params["calculate Setting"]["mode"])
+
+            elif mode.text() == 'absorbtion':
+                settings.widget_params["calculate Setting"]["mode"] = 1
+                self.flurence.setEnabled(True)
+                self.flurence.setChecked(False)
+                self.absorbtion.setEnabled(False)
+                # print(settings.widget_params["calculate Setting"]["mode"])
+
+
     def change_atom_num(self, atom_num):
 
         self.atom_num.setText(str(atom_num))
+
+    def change_TotalPhotons_num(self, TotalPhotons_num):
+
+        self.TotalPhotons_num.setText(str(TotalPhotons_num))
 
     def change_Pxatom_num(self, Pxatom_num):
 

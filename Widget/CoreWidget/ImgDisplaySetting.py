@@ -3,6 +3,9 @@ from PIL import Image
 from Utilities.Helper import settings
 import numpy as np
 from PyQt5 import QtGui
+from pathlib import Path
+from PyQt5.QtCore import *
+
 
 
 class ImgDisplaySetting(QWidget):
@@ -11,6 +14,10 @@ class ImgDisplaySetting(QWidget):
     2. photon range status
     3. magnification status
     """
+    img_sub = pyqtSignal(object)
+    img_sub2 = pyqtSignal(object)
+
+
     def __init__(self, parent=None):
         super(ImgDisplaySetting, self).__init__(parent)
         self.parent = parent
@@ -31,7 +38,7 @@ class ImgDisplaySetting(QWidget):
         Min = QHBoxLayout()
         RangeMin = QLabel('Min')
         self.pfMin = QDoubleSpinBox()
-        self.pfMin.setMinimum(20)  # Prevent numerical underflow
+        self.pfMin.setMinimum(0)  # Prevent numerical underflow
         self.pfMin.setSingleStep(1)
         Min.addWidget(RangeMin)
         Min.addWidget(self.pfMin)
@@ -39,7 +46,7 @@ class ImgDisplaySetting(QWidget):
         Max = QHBoxLayout()
         RangeMax = QLabel('Max')
         self.pfMax = QDoubleSpinBox()
-        self.pfMax.setMaximum(255)
+        self.pfMax.setMaximum(1000)
         self.pfMax.setSingleStep(1)
         Max.addWidget(RangeMax)
         Max.addWidget(self.pfMax)
@@ -89,13 +96,43 @@ class ImgDisplaySetting(QWidget):
 
         self.bkgLoad.clicked.connect(self.loadbkgImg)
         screen = QtGui.QDesktopWidget().screenGeometry()
-        self.setFixedSize(screen.width()*34/100,screen.height()*30/100)
+        self.setFixedSize(screen.width()*34/100,screen.height()*26/100)
         # print(screen.width(), screen.height())
 
     def loadbkgImg(self):
-        path, _ = QFileDialog.getOpenFileName(self, 'Open Image', 'c:\\', 'Image files(*.jpg *.gif *.png)')
-        img = Image.open(path)
+        path = QFileDialog.getOpenFileName(self, "Open File")  # name path
+        strimg_path = str(path)
+        img_file = strimg_path[2:len(strimg_path) - 19]
+        img_path = Path(img_file)
+
+        pathjud = str(img_path)
+        pathjud = pathjud[len(pathjud) - 3:]  # Get the version of the file
+        if pathjud == 'ata':
+            file = open(img_path)
+            linesc = file.readlines()  # Read the file as a behavior unit
+            rows = len(linesc)  # get the numbers fo line
+            lines = len(linesc[0].strip().split(' '))
+            img_data = np.zeros((rows, lines))  # Initialization matrix
+            row = 0
+            for line2 in linesc:
+                line2 = line2.strip().split(' ')
+                img_data[row, :] = line2[:]
+                row += 1
+            file.close()
+        else:
+            settings.Type_of_file = 'png'
+            try:
+                img_data = np.array(Image.open(img_path))
+            except TypeError:
+                return
+            except PermissionError:
+                return
+
+        img = img_data[::-1]
+        # path, _ = QFileDialog.getOpenFileName(self, 'Open Image', 'c:\\', 'Image files(*.jpg *.gif *.png)')
+        # img = Image.open(path)
         settings.imgData["BkgImg"] = np.array(img)
+        print('The background image has been added.')
 
     def default_setting(self):
         self.video_mode.setChecked(False)
@@ -113,37 +150,46 @@ class ImgDisplaySetting(QWidget):
 
     def changeMagValue(self):
         settings.widget_params["Image Display Setting"]["magValue"] = self.magValue.value()
-        print("mag value is ", settings.widget_params["Image Display Setting"]["magValue"])
+        # print("magnification value is ", settings.widget_params["Image Display Setting"]["magValue"])
 
     def changePfMin(self):
         settings.widget_params["Image Display Setting"]["pfMin"] = self.pfMin.value()
-        print("photon filter min value is ", settings.widget_params["Image Display Setting"]["pfMin"])
+        # print("photon filter min value is ", settings.widget_params["Image Display Setting"]["pfMin"])
 
     def changePfMax(self):
         settings.widget_params["Image Display Setting"]["pfMax"] = self.pfMax.value()
-        print("photon filter max value is ", settings.widget_params["Image Display Setting"]["pfMax"])
+        # print("photon filter max value is ", settings.widget_params["Image Display Setting"]["pfMax"])
 
     def ckbstate(self, b):
         if b.text() == "subtract background image":
             if b.isChecked() == True:
-                settings.widget_params["Image Display Setting"]["bkgStatus"] = True
-                print("background status", settings.widget_params["Image Display Setting"]["bkgStatus"])
+                if settings.imgData["BkgImg"] !=[]:
+                    settings.widget_params["Image Display Setting"]["bkgStatus"] = True
+                    print('The background image has been subtracted.')
+                    self.img_sub.emit(1)
+                    # print("background status", settings.widget_params["Image Display Setting"]["bkgStatus"])
+                else:
+                    print('Please load the background image.')
             else:
                 settings.widget_params["Image Display Setting"]["bkgStatus"] = False
 
         if b.text() == "photon filter":
             if b.isChecked() == True:
                 settings.widget_params["Image Display Setting"]["pfStatus"] = True
-                print("photon filter Status status", settings.widget_params["Image Display Setting"]["pfStatus"])
+                print('In the processing.')
+                self.img_sub2.emit(1)
+                # print("photon filter Status status", settings.widget_params["Image Display Setting"]["pfStatus"])
             else:
                 settings.widget_params["Image Display Setting"]["pfStatus"] = False
 
         if b.text() == "magnification":
             if b.isChecked() == True:
                 settings.widget_params["Image Display Setting"]["magStatus"] = True
-                print("magnification status", settings.widget_params["Image Display Setting"]["magStatus"])
+                print('magnification has been changed.')
+                # print("magnification status", settings.widget_params["Image Display Setting"]["magStatus"])
             else:
                 settings.widget_params["Image Display Setting"]["magStatus"] = False
+                print('False')
 
 
 

@@ -10,6 +10,7 @@ from PIL import Image
 import datetime
 from queue import Queue
 from PyQt5 import QtGui
+from Widget.CoreWidget import AnalyseDataWidget
 
 
 class ImgQueueWidget(QWidget):
@@ -57,7 +58,7 @@ class PlotWindow(QWidget):
         self.horizontalLayout = QVBoxLayout()
         self.horizontalLayout.addWidget(self.push_btn)
         self.horizontalLayout.addWidget(self.save_btn)
-        # self.horizontalLayout.addWidget(self.img_label)
+        self.horizontalLayout.addWidget(self.img_label)
         self.layout.addLayout(self.horizontalLayout)
         screen = QtGui.QDesktopWidget().screenGeometry()
         self.setFixedSize(screen.width() * 22 / 100, screen.height() * 14.5 / 100)
@@ -67,27 +68,67 @@ class PlotWindow(QWidget):
         if self.video.image is None:
             print("have no image in window")
             return
+        # img_analyse_setting.roi.setChecked(False)
         img_dict = {'img_data': np.array(self.video.image), 'img_name': self.img_label.text()}
+        settings.imgData["Img_data"] = img_dict['img_data']
         self.img_dict.emit(img_dict)
-
+######################################
+    # def save_image(self):
+    #     # try:
+    #     if self.video.image is None:
+    #         print("have no image in window")
+    #         return
+    #     fpath = IOHelper.get_config_setting('DATA_PATH')
+    #     fpath = Path(fpath)
+    #     dir_path = fpath.joinpath(str(datetime.datetime.now()).split('.')[0].replace(' ', '-').replace(':', '_'))
+    #     if settings.m_path != []:
+    #         dir_path = settings.m_path
+    #     # print("save images to {}".format(dir_path))
+    #     if not dir_path.exists():
+    #         dir_path.mkdir()
+    #     img_data = np.array(self.video.image)
+    #     # load image name by path
+    #     img_name = (self.img_label.text()).split('.')[0].replace(' ', '-').replace(':', '_')
+    #     img_data = img_data[::-1]
+    #     img_data = Image.fromarray(img_data)
+    #     img_data.save(r"{}\{}.png".format(dir_path, img_name))
+    #     print("save images to {}".format(dir_path))
+    #         # print("images have saved.")
+    #     # except OSError:
+    #     #     print('Image cannot be saved.')
+########################################################################33
     def save_image(self):
+        # try:
         if self.video.image is None:
             print("have no image in window")
             return
         fpath = IOHelper.get_config_setting('DATA_PATH')
         fpath = Path(fpath)
-        dir_path = fpath.joinpath(str(datetime.datetime.now()).split('.')[0].replace(' ', '-').replace(':', '_'))
-        print("save images to {}".format(dir_path))
+        dir_path = fpath.joinpath(str(datetime.datetime.now())[2:].split('.')[0].replace(' ', '').replace(':', '_'))
+        if settings.m_path != []:
+            dir_path = settings.m_path
+        # print("save images to {}".format(dir_path))
         if not dir_path.exists():
             dir_path.mkdir()
-            img_data = np.array(self.video.image)
-            # load image name by path
-            img_name = (self.img_label.text()).split('.')[0].replace(' ', '-').replace(':', '_')
-            img_data = Image.fromarray(img_data)
-            img_data.save(r"{}\{}.png".format(dir_path, img_name))
-        print("images have saved.")
+        img_data = np.array(self.video.image)
+        # load image name by path
+        img_name1 = settings.widget_params["Analyse Data Setting"]["Prefix"]
+        img_name2 = (self.img_label.text())[0:20].replace(' ', '~').replace(':', '').replace('-', '')
+        img_name = str(img_name1) + str(img_name2)
+        img_data = img_data[::-1]
+        # img_data = Image.fromarray(img_data)
+        # img_data.save(r"{}\{}.png".format(dir_path, img_name))
+        import  numpy
+        numpy.savetxt(r"{}\{}.ndata".format(dir_path, img_name), img_data, fmt='%.2e', delimiter=' ', newline='\n', header='', footer='', comments=' ',
+                      encoding=None)
+        print("save images to {}".format(dir_path))
+            # print("images have saved.")
+        # except OSError:
+        #     print('Image cannot be saved.')
 
+#############################################################3
     def img_plot(self, img_dict):
+        # print(img_dict['img_data'].ndim)
         self.video.setImage(img_dict['img_data'])
         self.img_label.setText(img_dict['img_name'])
 
