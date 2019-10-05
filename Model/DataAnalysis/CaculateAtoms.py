@@ -133,11 +133,11 @@ def calculateAtom(TotalPhotons):
     # ROInumPx = np.shape(ROIImg)[0] * np.shape(ROIImg)[1]
     quantumeff = 0.56
     exposureTime = 10
-    NCountStatus = 1
+    NCountStatus = settings.widget_params["calculate Setting"]["mode"]
     NCountsfitting = 0
     # ROInumPx =
     # fluorescence img atoms
-    if NCountStatus == 1:
+    if NCountStatus == 0:
         kbol = 1.38 * 1e-23                                                 # Boltzmann constant
         c0 = 2.997 * 1e8                                                    # Light speed
         hbar = 1.03 * 1e-34
@@ -155,7 +155,7 @@ def calculateAtom(TotalPhotons):
         MOTCounts = 1 / LensEff / (ScatterRate * exposureTime * 1e-3) * TotalPhotons / quantumeff
         MOTCountsfitting = 1 / LensEff / (ScatterRate * exposureTime * 1e-3) * NCountsfitting / quantumeff
 
-
+        global  AtomROITot ,AtomROIPX ,ElectronROI ,AtomROITotFit
         AtomROITot = MOTCounts
         # AtomROIPX = MOTCounts / ROInumPx
         AtomROIPX = 0          #temporary
@@ -163,13 +163,14 @@ def calculateAtom(TotalPhotons):
         AtomROITotFit = MOTCountsfitting
 
     # absorption img atoms
-    elif NCountStatus == 2:
+    elif NCountStatus == 1:
         lamda = 399 * 1e-9
         sigma = 3 * lamda ** 2 / 2 / np.pi
+        CCDPlSize = [3.75, 3.75]
         pixelArea = CCDPlSize[0] * CCDPlSize[1] * 1e-12
 
-        if MagStatus:
-            Magnification = MgFactor
+        if settings.widget_params["Image Display Setting"]["magStatus"]:
+            Magnification = settings.widget_params["Image Display Setting"]["magValue"]
         else:
             Magnification = 1
 
@@ -179,7 +180,8 @@ def calculateAtom(TotalPhotons):
 
         # data need to be displayed
         AtomROITot = ABSCounts
-        AtomROIPX = ABSCounts / ROInumPx
+        # AtomROIPX = ABSCounts / ROInumPx
+        AtomROIPX = 0
         ElectronROI = TotalPhotons
         AtomROITotFit = ABSCountsFitting
 
