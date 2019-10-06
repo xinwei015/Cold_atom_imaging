@@ -5,6 +5,8 @@ from PyQt5.QtWidgets import *
 from Utilities.Helper import settings
 import math
 from Model.DataAnalysis.CaculateAtoms import *
+from decimal import *
+getcontext().prec = 4#Set significant number
 
 
 class PlotMainWindow(QWidget):
@@ -184,12 +186,16 @@ class PlotMainWindow(QWidget):
             TotalPhotons = sum(sum(self.data[int(self.roi.pos()[1]):int(self.roi.pos()[1] + self.roi.size()[0]), int(self.roi.pos()[0]):int(self.roi.pos()[0] + self.roi.size()[1])]))
             calculatedata = calculateAtom(TotalPhotons)
             atom_num = round(calculatedata[0])
-        self.atom_number.emit(atom_num)
+        TotalPhotons = Decimal(1) * Decimal(TotalPhotons)
         TotalPhotons = round(TotalPhotons)
-        self.TotalPhotons_num.emit(TotalPhotons)
         ROIsize = self.roi.size()[0]*self.roi.size()[1]
         Pxatom_num = atom_num/(ROIsize)
-        Pxatom_num = round(Pxatom_num,3)
+        Pxatom_num = Decimal(1) * Decimal(Pxatom_num)#Out number
+        Pxatom_num = round(Pxatom_num)
+        # Pxatom_num = Decimal(1) * Decimal(Pxatom_num)
+        atom_num = Decimal(1) * Decimal(atom_num)
+        self.TotalPhotons_num.emit(TotalPhotons)
+        self.atom_number.emit(atom_num)
         self.Pxatom_num.emit(Pxatom_num)
         # print(settings.imgData["ROI_size"])
 

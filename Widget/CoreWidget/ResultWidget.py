@@ -22,8 +22,14 @@ class ResultWidget(QtWidgets.QWidget):
         self.absorbtion = QCheckBox('absorbtion',self)
         self.absorbtion.stateChanged.connect(lambda: self.change_cal(self.absorbtion))
         self.fLayout = QtWidgets.QVBoxLayout()
+        # self.onelabel = QtWidgets.QLabel('calculation rule')
+        # self.fLayout.addWidget(self.onelabel)
         self.fLayout.addWidget(self.flurence)
+        # self.flurence.setFont(QFont("Roman times", 18))
         self.fLayout.addWidget(self.absorbtion)
+        # self.fLayout.setStretchFactor(self.onelabel, 0.5)# proportion
+        self.fLayout.setStretchFactor(self.flurence, 2)
+        self.fLayout.setStretchFactor(self.absorbtion, 2)
         # self.fLayout.setGeometry(300, 300)
         self.flurence.setChecked(True)
         self.flurence.setEnabled(False)
@@ -32,7 +38,7 @@ class ResultWidget(QtWidgets.QWidget):
 
         self.atom_num_label = QtWidgets.QLabel('Atom#')
         self.atom_num_label.setFont(QFont("Roman times", 18))
-        self.atom_num = QtWidgets.QLabel(str(0))
+        self.atom_num = QtWidgets.QLabel(str('N'))
         self.atom_num.setFont(QFont("Roman times", 24))
         self.hLayout1 = QtWidgets.QHBoxLayout()
         self.hLayout1.addWidget(self.atom_num_label)
@@ -40,7 +46,7 @@ class ResultWidget(QtWidgets.QWidget):
 
         self.TotalPhotons_num_label = QtWidgets.QLabel('TotalPhotons#')
         self.TotalPhotons_num_label.setFont(QFont("Roman times", 18))
-        self.TotalPhotons_num = QtWidgets.QLabel(str(0))
+        self.TotalPhotons_num = QtWidgets.QLabel(str('N'))
         self.TotalPhotons_num.setFont(QFont("Roman times", 24))
         self.hLayout3 = QtWidgets.QHBoxLayout()
         self.hLayout3.addWidget(self.TotalPhotons_num_label)
@@ -48,7 +54,7 @@ class ResultWidget(QtWidgets.QWidget):
 
         self.atom_numpx_label = QtWidgets.QLabel('Atom#/px')
         self.atom_numpx_label.setFont(QFont("Roman times", 18))
-        self.atom_numpx = QtWidgets.QLabel(str(0))
+        self.atom_numpx = QtWidgets.QLabel(str('N'))
         self.atom_numpx.setFont(QFont("Roman times", 24))
         self.hLayout2 = QtWidgets.QHBoxLayout()
         self.hLayout2.addWidget(self.atom_numpx_label)
@@ -87,15 +93,15 @@ class ResultWidget(QtWidgets.QWidget):
 
 
     def change_atom_num(self, atom_num):
-
-        self.atom_num.setText(str(atom_num))
+        a1 = '%.3e' % atom_num
+        self.atom_num.setText(str(a1))
 
     def change_TotalPhotons_num(self, TotalPhotons_num):
-
-        self.TotalPhotons_num.setText(str(TotalPhotons_num))
+        a2 = '%.3e' % TotalPhotons_num
+        self.TotalPhotons_num.setText(str(a2))
 
     def change_Pxatom_num(self, Pxatom_num):
-
-        self.atom_numpx.setText(str(Pxatom_num))
+        a3 = '%.3e' % Pxatom_num
+        self.atom_numpx.setText(str(a3))
 
 

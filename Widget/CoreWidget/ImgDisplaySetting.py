@@ -39,6 +39,7 @@ class ImgDisplaySetting(QWidget):
         RangeMin = QLabel('Min')
         self.pfMin = QDoubleSpinBox()
         self.pfMin.setMinimum(0)  # Prevent numerical underflow
+        self.pfMin.setMaximum(1000)
         self.pfMin.setSingleStep(1)
         Min.addWidget(RangeMin)
         Min.addWidget(self.pfMin)
@@ -46,6 +47,7 @@ class ImgDisplaySetting(QWidget):
         Max = QHBoxLayout()
         RangeMax = QLabel('Max')
         self.pfMax = QDoubleSpinBox()
+        self.pfMax.setMinimum(0)
         self.pfMax.setMaximum(1000)
         self.pfMax.setSingleStep(1)
         Max.addWidget(RangeMax)
