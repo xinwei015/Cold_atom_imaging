@@ -28,6 +28,7 @@ class ImgAnalysisSetting(QWidget):
 
         self.roi = QCheckBox("roi", self)
         self.cross_axes = QCheckBox("cross axes", self)
+        # self.cross_axes2 = QCheckBox("cross axes2", self)
         self.auto_save = QCheckBox("auto save", self)
 ########################################################################################
         # self.absorb_img.clicked.connect(self.absorb_setting)
@@ -109,6 +110,7 @@ class ImgAnalysisSetting(QWidget):
 
         layout1.addWidget(self.roi)
         layout1.addWidget(self.cross_axes)
+        # layout1.addWidget(self.cross_axes2)
         layout1.addWidget(self.auto_save)
         # layout1.addWidget(self.piefix)
         # layout1.addWidget(self.absorb_img)
@@ -208,6 +210,7 @@ class ImgAnalysisSetting(QWidget):
 
         self.roi.setChecked(False)
         self.cross_axes.setChecked(False)
+        # self.cross_axes2.setChecked(False)
 
         self.Detu.setValue(settings.widget_params["Analyse Data Setting"]["Detu"])
         self.Dia.setValue(settings.widget_params["Analyse Data Setting"]["Dia"])

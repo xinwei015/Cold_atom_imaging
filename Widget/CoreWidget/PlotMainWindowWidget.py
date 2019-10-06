@@ -25,8 +25,10 @@ class PlotMainWindow(QWidget):
         pg.setConfigOptions(imageAxisOrder='row-major')
         # pg.setConfigOptions(leftButtonPan=False)
         self.viewBox = l.addPlot()
+        self.viewBox.hideAxis('left')#hide the left and right
+        self.viewBox.hideAxis('bottom')
         self.img = pg.ImageItem()
-        self.viewBox.setMouseEnabled(x=False, y=False)#make it can not move
+        self.viewBox.setMouseEnabled(x=False, y=False)#make image can not move
         # pg.setConfigOptions(leftButtonPan=False)
         self.viewBox.addItem(self.img)
         self.layout.addWidget(win)
@@ -65,6 +67,7 @@ class PlotMainWindow(QWidget):
             self.viewBox.addItem(self.roi)
             # make sure ROI is drawn above image
             self.roi.setZValue(10)
+            # if settings.widget_params["Analyse Data Setting"]["add_ten"]:
             self.vLine = pg.InfiniteLine(angle=90, movable=False)
             self.hLine = pg.InfiniteLine(angle=0, movable=False)
             self.vLine.setPen(color='r', width=3)
@@ -93,10 +96,10 @@ class PlotMainWindow(QWidget):
                 settings.widget_params["Analyse Data Setting"]["add_cross_axes"] = True
                 # add horizontal axes and vertical axes
                 self.h_axes = self.viewBox.plot()
-                self.h_axes.setPen(color='r', width=3)
-                # TODO: vertical axes hasn't finished
+                self.h_axes.setPen(color='y', width=2)#x
+                # TODO: vertical axes hasn't finishe
                 self.v_axes = self.viewBox.plot()
-                self.v_axes.setPen(color='g', width=3)
+                self.v_axes.setPen(color='g', width=2)
             else:
                 print("please add roi first.")
                 # 0 doesn't check, 2 means check
@@ -111,7 +114,32 @@ class PlotMainWindow(QWidget):
                 self.viewBox.removeItem(self.h_axes)
                 self.viewBox.removeItem(self.v_axes)
 
+    def add_cross_axes2(self, cbk_state):
+        if cbk_state.isChecked():
+            if settings.widget_params["Analyse Data Setting"]["roiStatus"]:
+                settings.widget_params["Analyse Data Setting"]["add_ten"] = True
+                # add horizontal axes and vertical axes
+                # self.h_axes = self.viewBox.plot()
+                # self.h_axes.setPen(color='r', width=3)#x
+                # TODO: vertical axes hasn't finishe
+                # self.v_axes = self.viewBox.plot()
+                # self.v_axes.setPen(color='g', width=3)
+            else:
+                print("please add roi first.")
+                # 0 doesn't check, 2 means check
+                cbk_state.setCheckState(0)
+                settings.widget_params["Analyse Data Setting"]["add_ten"] = False
+                return
+        else:
+            cbk_state.setCheckState(0)
+            settings.widget_params["Analyse Data Setting"]["add_ten"] = False
+            # remove plotItem if cross axes has added
+            # if self.h_axes is not None and self.v_axes is not None:
+                # self.viewBox.removeItem(self.h_axes)
+                # self.viewBox.removeItem(self.v_axes)
+
     def update_ch_fitting_cs(self):
+    # if settings.widget_params["Analyse Data Setting"]["add_ten"]:
         self.vLine.setPos(self.roi.pos()[0]+self.roi.size()[0]/2)
         self.hLine.setPos(self.roi.pos()[1]+self.roi.size()[1]/2)
         if settings.widget_params["Analyse Data Setting"]["add_cross_axes"]:
@@ -119,12 +147,21 @@ class PlotMainWindow(QWidget):
             if len(self.data_shape) == 3:
                 v_data = self.data[:, int(self.roi.pos()[0]+self.roi.size()[0]/2), 1]
                 h_data = self.data[int(self.roi.pos()[1]+self.roi.size()[1]/2), :, 1]
+                num_h_data = len(self.data[int(self.roi.pos()[1]+self.roi.size()[1]/2), :, 1])
+                num_h_data = range(num_h_data)
+                print(num_h_data)
             else:
                 v_data = self.data[:, int(self.roi.pos()[0] + self.roi.size()[0] / 2)]
+                num_v = range(len(v_data))
+                num_v_data = list(num_v)
                 h_data = self.data[int(self.roi.pos()[1] + self.roi.size()[1] / 2), :]
+                num_h = range(len(h_data))
+                num_h_data = list(num_h)
             # plot origin data and fitting data
-            self.h_axes.setData(h_data)
-            self.v_axes.setData(v_data)
+            # p2.addItem(pg.PlotCurveItem(v_data, pen='b'))
+
+            self.h_axes.setData(num_h_data, h_data)
+            self.v_axes.setData(v_data, num_v_data)
 
     def calculate_roi(self):
         # [(lower-left corner), (size)]
