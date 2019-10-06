@@ -93,15 +93,12 @@ class ResultWidget(QtWidgets.QWidget):
 
 
     def change_atom_num(self, atom_num):
-        a1 = '%.3e' % atom_num
-        self.atom_num.setText(str(a1))
+        self.atom_num.setText(str('%.3e' % atom_num))
 
     def change_TotalPhotons_num(self, TotalPhotons_num):
-        a2 = '%.3e' % TotalPhotons_num
-        self.TotalPhotons_num.setText(str(a2))
+        self.TotalPhotons_num.setText(str('%.3e' % TotalPhotons_num))
 
     def change_Pxatom_num(self, Pxatom_num):
-        a3 = '%.3e' % Pxatom_num
-        self.atom_numpx.setText(str(a3))
+        self.atom_numpx.setText(str('%.3e' % Pxatom_num))
 
 
