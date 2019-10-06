@@ -36,7 +36,7 @@ class ResultWidget(QtWidgets.QWidget):
         # self.absorbtion.setChecked(False)
         # self.absorbtion.setEnabled(True)
 
-        self.atom_num_label = QtWidgets.QLabel('Atom#')
+        self.atom_num_label = QtWidgets.QLabel('Atom')
         self.atom_num_label.setFont(QFont("Roman times", 18))
         self.atom_num = QtWidgets.QLabel(str('N'))
         self.atom_num.setFont(QFont("Roman times", 24))
@@ -44,7 +44,7 @@ class ResultWidget(QtWidgets.QWidget):
         self.hLayout1.addWidget(self.atom_num_label)
         self.hLayout1.addWidget(self.atom_num)
 
-        self.TotalPhotons_num_label = QtWidgets.QLabel('TotalPhotons#')
+        self.TotalPhotons_num_label = QtWidgets.QLabel('TotalPhotons')
         self.TotalPhotons_num_label.setFont(QFont("Roman times", 18))
         self.TotalPhotons_num = QtWidgets.QLabel(str('N'))
         self.TotalPhotons_num.setFont(QFont("Roman times", 24))
@@ -52,7 +52,7 @@ class ResultWidget(QtWidgets.QWidget):
         self.hLayout3.addWidget(self.TotalPhotons_num_label)
         self.hLayout3.addWidget(self.TotalPhotons_num)
 
-        self.atom_numpx_label = QtWidgets.QLabel('Atom#/px')
+        self.atom_numpx_label = QtWidgets.QLabel('Atom/px')
         self.atom_numpx_label.setFont(QFont("Roman times", 18))
         self.atom_numpx = QtWidgets.QLabel(str('N'))
         self.atom_numpx.setFont(QFont("Roman times", 24))
