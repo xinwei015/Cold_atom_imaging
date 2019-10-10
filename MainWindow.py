@@ -11,6 +11,7 @@ from Widget.CoreWidget.ImgDisplaySetting import ImgDisplaySetting
 from Widget.CoreWidget.AnalyseDataWidget import ImgAnalysisSetting
 from Widget.CoreWidget.PromptWidget import PromptWidget
 from Widget.CoreWidget.ResultWidget import ResultWidget
+from Widget.CoreWidget.FittingdataWidget import FittingdataWidget
 from Widget.CustomWidget.CameraSettingWidget import CameraOption
 
 import numpy as np
@@ -27,7 +28,7 @@ class TestMainWindow(QMainWindow):
 
     def __init__(self):
         super(TestMainWindow, self).__init__()
-        self.move(0, 0)
+        self.move(82, 0)
         ### MENUS AND TOOLBARS ###
         self.fileMenu = self.menuBar().addMenu("File")
         self.windowMenu = self.menuBar().addMenu("Window")
@@ -109,6 +110,15 @@ class TestMainWindow(QMainWindow):
         sys.stdout = Helper.print_redirect()
         sys.stdout.print_signal.connect(self.update_console)
         self.windowMenu.addAction(promptDockWidget.toggleViewAction())
+
+        # Fitting dock
+        self.Fitting_dock = FittingdataWidget()
+        fittingDockWidget = QDockWidget("Fitting Console", self)
+        fittingDockWidget.setObjectName("FittingDockWidget")
+        fittingDockWidget.setAllowedAreas(Qt.BottomDockWidgetArea)
+        fittingDockWidget.setWidget(self.Fitting_dock)
+        self.addDockWidget(Qt.BottomDockWidgetArea, fittingDockWidget)
+        self.windowMenu.addAction(fittingDockWidget.toggleViewAction())
 
         # result dock
         self.result_dock = ResultWidget()
@@ -368,12 +378,15 @@ class TestMainWindow(QMainWindow):
         self.plot_main_window.atom_number.connect(self.result_dock.change_atom_num)
         self.plot_main_window.Pxatom_num.connect(self.result_dock.change_Pxatom_num)
         self.plot_main_window.TotalPhotons_num.connect(self.result_dock.change_TotalPhotons_num)
+        self.plot_main_window.fittingdata.connect(self.Fitting_dock.change_label)
 
         # analyse data widget
         self.img_analyse_setting.roi.stateChanged.connect(
             lambda: self.plot_main_window.add_roi(self.img_analyse_setting.roi, self.img_analyse_setting.cross_axes))
         self.img_analyse_setting.cross_axes.stateChanged.connect(
             lambda: self.plot_main_window.add_cross_axes(self.img_analyse_setting.cross_axes))
+        # self.img_analyse_setting.cross_axes2.stateChanged.connect(
+        #     lambda: self.plot_main_window.add_cross_axes2(self.img_analyse_setting.cross_axes2))
         self.camera_setting.AbsTriger.stateChanged.connect(
             lambda: self.absclick(self.camera_setting.AbsTriger))
         self.img_analyse_setting.auto_save.stateChanged.connect(
@@ -476,7 +489,7 @@ class TestMainWindow(QMainWindow):
                 # img_data = Image.fromarray(img_data)
                 # img_data.save(r"{}\{}.png".format(dir_path, img_name))
                 import numpy
-                numpy.savetxt(r"{}\{}.ndata".format(dir_path, img_name), img_data, fmt='%.2e', delimiter=' ',newline='\n', header='', footer='', comments=' ', encoding=None)
+                numpy.savetxt(r"{}\{}.data".format(dir_path, img_name), img_data, fmt='%.2e', delimiter=' ',newline='\n', header='', footer='', comments=' ', encoding=None)
             self.img_queue.plot_wins.put(plot_win)
         print("save images to {}".format(dir_path))
         # print("images have saved.")
@@ -511,7 +524,7 @@ class TestMainWindow(QMainWindow):
         # img_data = Image.fromarray(img_data)
         # img_data.save(r"{}\{}.png".format(dir_path, img_name))
         import numpy
-        numpy.savetxt(r"{}\{}.ndata".format(dir_path, img_name), img_data, fmt='%.2e', delimiter=' ', newline='\n',header='', footer='', comments=' ',encoding=None)
+        numpy.savetxt(r"{}\{}.data".format(dir_path, img_name), img_data, fmt='%.2e', delimiter=' ', newline='\n',header='', footer='', comments=' ',encoding=None)
         print("save images to {}".format(dir_path))
         # print("images have saved.")
         # except OSError:
