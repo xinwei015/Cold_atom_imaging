@@ -13,13 +13,14 @@ def inintParams():
             "img_stack_num": 4,
             "absimg_stack_num": 3
         },
-        'calculate Setting':{
-            'mode':0
-        },
+        'calculate Setting':{'mode':0,},
+        'Fitting Setting': {'mode': 0},
+
         "Analyse Data Setting": {
             "autoStatus": False,
             "roiStatus": False,
             "add_cross_axes": False,
+            # "add_ten": False,
             "AbsTrigerStatus": False,
             "ToPwr": 110,
             "Detu": 6,
