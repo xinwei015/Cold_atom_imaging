@@ -4,6 +4,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from Utilities.Helper import settings
 import math
+from scipy.optimize import curve_fit
 from Model.DataAnalysis.CaculateAtoms import *
 from decimal import *
 getcontext().prec = 4#Set significant number
@@ -14,6 +15,7 @@ class PlotMainWindow(QWidget):
     atom_number = pyqtSignal(object)
     Pxatom_num = pyqtSignal(object)
     TotalPhotons_num = pyqtSignal(object)
+    fittingdata = pyqtSignal(dict)
 
 
     def __init__(self):
@@ -42,7 +44,7 @@ class PlotMainWindow(QWidget):
         self.data = None
         self.data_shape = None
         screen = QtGui.QDesktopWidget().screenGeometry()
-        self.setFixedSize(screen.width()*40/100,screen.height()*63/100)
+        self.setFixedSize(screen.width()*40/100,screen.width()*(9/16)*63/100)
         # print(self.width(), self.height())
 
 
@@ -102,6 +104,11 @@ class PlotMainWindow(QWidget):
                 # TODO: vertical axes hasn't finishe
                 self.v_axes = self.viewBox.plot()
                 self.v_axes.setPen(color='g', width=2)
+                if settings.widget_params["Fitting Setting"]["mode"] == 1:
+                    self.h_axes2 = self.viewBox.plot()
+                    self.h_axes2.setPen(color='b', width=1)  # x
+                    self.v_axes2 = self.viewBox.plot()
+                    self.v_axes2.setPen(color='b', width=1)
             else:
                 print("please add roi first.")
                 # 0 doesn't check, 2 means check
@@ -117,28 +124,7 @@ class PlotMainWindow(QWidget):
                 self.viewBox.removeItem(self.v_axes)
 
     def add_cross_axes2(self, cbk_state):
-        if cbk_state.isChecked():
-            if settings.widget_params["Analyse Data Setting"]["roiStatus"]:
-                settings.widget_params["Analyse Data Setting"]["add_ten"] = True
-                # add horizontal axes and vertical axes
-                # self.h_axes = self.viewBox.plot()
-                # self.h_axes.setPen(color='r', width=3)#x
-                # TODO: vertical axes hasn't finishe
-                # self.v_axes = self.viewBox.plot()
-                # self.v_axes.setPen(color='g', width=3)
-            else:
-                print("please add roi first.")
-                # 0 doesn't check, 2 means check
-                cbk_state.setCheckState(0)
-                settings.widget_params["Analyse Data Setting"]["add_ten"] = False
-                return
-        else:
-            cbk_state.setCheckState(0)
-            settings.widget_params["Analyse Data Setting"]["add_ten"] = False
-            # remove plotItem if cross axes has added
-            # if self.h_axes is not None and self.v_axes is not None:
-                # self.viewBox.removeItem(self.h_axes)
-                # self.viewBox.removeItem(self.v_axes)
+        pass
 
     def update_ch_fitting_cs(self):
     # if settings.widget_params["Analyse Data Setting"]["add_ten"]:
@@ -146,24 +132,57 @@ class PlotMainWindow(QWidget):
         self.hLine.setPos(self.roi.pos()[1]+self.roi.size()[1]/2)
         if settings.widget_params["Analyse Data Setting"]["add_cross_axes"]:
             # fitting process
-            if len(self.data_shape) == 3:
-                v_data = self.data[:, int(self.roi.pos()[0]+self.roi.size()[0]/2), 1]
-                h_data = self.data[int(self.roi.pos()[1]+self.roi.size()[1]/2), :, 1]
-                num_h_data = len(self.data[int(self.roi.pos()[1]+self.roi.size()[1]/2), :, 1])
-                num_h_data = range(num_h_data)
-                print(num_h_data)
-            else:
-                v_data = self.data[:, int(self.roi.pos()[0] + self.roi.size()[0] / 2)]
-                num_v = range(len(v_data))
-                num_v_data = list(num_v)
-                h_data = self.data[int(self.roi.pos()[1] + self.roi.size()[1] / 2), :]
-                num_h = range(len(h_data))
-                num_h_data = list(num_h)
-            # plot origin data and fitting data
-            # p2.addItem(pg.PlotCurveItem(v_data, pen='b'))
+            # if settings.widget_params["Image Display Setting"]["magStatus"]:
+            #     Magnification = settings.widget_params["Image Display Setting"]["magValue"]
+            # else:
+            #     Magnification = 1
 
-            self.h_axes.setData(num_h_data, h_data)
-            self.v_axes.setData(v_data, num_v_data)
+            h_data = self.data[int(self.roi.pos()[1] + self.roi.size()[1] / 2), :]
+            num_h = range(len(h_data))
+            num_h_data = list(num_h)
+
+            v_data = self.data[:, int(self.roi.pos()[0] + self.roi.size()[0] / 2)]
+            num_v = range(len(v_data))
+            num_v_data = list(num_v)
+
+            # vlen = np.ones(len(v_data))# make it at right
+            # vlenlist = list(len(h_data) * vlen)
+            # v_data = list(map(lambda x: x[0] - x[1], zip(vlenlist, v_data)))
+            # print(self.roi.pos())
+            # num_v_data = list([x*len(h_data) for x in num_v_data])
+            if settings.widget_params["Fitting Setting"]["mode"] == 1:
+                num_h_data2 = num_h_data[int(self.roi.pos()[0] ): int(self.roi.pos()[0] + self.roi.size()[0])]
+                num_h_data2 = np.array(num_h_data2)
+                h_data2 = self.data[int(self.roi.pos()[1] + self.roi.size()[1] / 2), int(self.roi.pos()[0]) : int(self.roi.pos()[0] + self.roi.size()[0])]
+                h_data2 = np.array(h_data2)
+                from scipy import optimize
+                p0 = [1 ,int(self.roi.pos()[1] + self.roi.size()[1] / 2), int(self.roi.size()[1]/2), 0]
+                plesq = optimize.leastsq(residuals, p0, args=(h_data2, num_h_data2))
+                data1 = plesq[0][0]
+                data2 = plesq[0][1]
+                data3 = plesq[0][2]
+
+                h_data2 = peval(num_h_data ,plesq[0] )
+
+                num_v_data2 = num_v_data[int(self.roi.pos()[1]): int(self.roi.pos()[1] + self.roi.size()[1])]
+                num_v_data2 = np.array(num_v_data2)
+                v_data2 = self.data[int(self.roi.pos()[0] + self.roi.size()[0] / 2),int(self.roi.pos()[1]): int(self.roi.pos()[1] + self.roi.size()[1])]
+                v_data2 = np.array(v_data2)
+                p1 = [1, int(self.roi.pos()[0] + self.roi.size()[0] / 2), int(self.roi.size()[0] / 2), 0]
+                plesq2 = optimize.leastsq(residuals, p1, args=(v_data2, num_v_data2))
+                data4 = plesq2[0][0]
+                data5 = plesq2[0][1]
+                data6 = plesq2[0][2]
+                data7 = 0
+                v_data2 = peval(num_v_data, plesq2[0])
+
+                self.fittingdata.emit({'data1': data1 , 'data2': data2, 'data3': data3, 'data4': data4,'data5': data5, 'data6': data6,'data7': data7})
+                self.h_axes2.setData(num_h_data, h_data2)
+                self.v_axes2.setData(v_data2, num_v_data)
+
+            # self.h_axes.setData(num_h_data, h_data)
+            # self.v_axes.setData(v_data, num_v_data)
+
 
     def calculate_roi(self):
         # [(lower-left corner), (size)]
@@ -233,6 +252,7 @@ class PlotMainWindow(QWidget):
             self.img.setImage(settings.imgData["Img_photon_range"])
             self.data = settings.imgData["Img_photon_range"]
             self.data_shape = settings.imgData["Img_photon_range"].shape
+            print('photon filter ： finish.')
         else:
             print('No image')
 
@@ -248,6 +268,19 @@ class PlotMainWindow(QWidget):
         self.data = None
         self.data_shape = None
 
+def func(xx, aa, bb, cc, dd):
+    return aa * np.e ** (-((xx - bb) ** 2) / 2 / cc ** 2) + dd
+
+# def logistic4(x, A, B, C, D):
+#     return (A-D)/(1+(x/C)**B)+D
+
+def residuals(p, y, x):
+    [A, B, C, D] = p
+    return y - func(x, A, B, C, D)
+
+def peval(x, p):
+    [A, B, C, D] = p
+    return func(x, A, B, C, D)
 
 
 

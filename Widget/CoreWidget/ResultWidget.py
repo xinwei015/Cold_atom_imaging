@@ -73,7 +73,7 @@ class ResultWidget(QtWidgets.QWidget):
         self.setLayout(self.totalLayout)
 
         screen = QtGui.QDesktopWidget().screenGeometry()
-        self.setFixedSize(screen.width()*34/100,screen.height()*19/100)
+        self.setFixedSize(screen.width()*31/100,screen.width()*(9/16)*19/100)
 
     def change_cal(self,mode):
         if mode.isChecked():

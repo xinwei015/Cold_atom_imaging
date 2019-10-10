@@ -98,7 +98,7 @@ class ImgDisplaySetting(QWidget):
 
         self.bkgLoad.clicked.connect(self.loadbkgImg)
         screen = QtGui.QDesktopWidget().screenGeometry()
-        self.setFixedSize(screen.width()*34/100,screen.height()*26/100)
+        self.setFixedSize(screen.width()*31/100,screen.width()*(9/16)*26/100)
         # print(screen.width(), screen.height())
 
     def loadbkgImg(self):
@@ -167,19 +167,19 @@ class ImgDisplaySetting(QWidget):
             if b.isChecked() == True:
                 if settings.imgData["BkgImg"] !=[]:
                     settings.widget_params["Image Display Setting"]["bkgStatus"] = True
-                    print('The background image has been subtracted.')
+                    print('subtract background image ： finish.')
                     self.img_sub.emit(1)
                     # print("background status", settings.widget_params["Image Display Setting"]["bkgStatus"])
                 else:
-                    print('Please load the background image.')
+                    print('No background image.')
             else:
                 settings.widget_params["Image Display Setting"]["bkgStatus"] = False
 
         if b.text() == "photon filter":
             if b.isChecked() == True:
                 settings.widget_params["Image Display Setting"]["pfStatus"] = True
-                print('In the processing.')
                 self.img_sub2.emit(1)
+                # print('photon filter ： finish.')
                 # print("photon filter Status status", settings.widget_params["Image Display Setting"]["pfStatus"])
             else:
                 settings.widget_params["Image Display Setting"]["pfStatus"] = False
@@ -187,11 +187,11 @@ class ImgDisplaySetting(QWidget):
         if b.text() == "magnification":
             if b.isChecked() == True:
                 settings.widget_params["Image Display Setting"]["magStatus"] = True
-                print('magnification has been changed.')
+                # print('magnification has been changed.')
                 # print("magnification status", settings.widget_params["Image Display Setting"]["magStatus"])
             else:
                 settings.widget_params["Image Display Setting"]["magStatus"] = False
-                print('False')
+                # print('False')
 
 
 

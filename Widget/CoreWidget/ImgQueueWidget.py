@@ -27,7 +27,7 @@ class ImgQueueWidget(QWidget):
             self.verticalLayout.addWidget(plot_win)
         self.setLayout(self.verticalLayout)
         screen = QtGui.QDesktopWidget().screenGeometry()
-        self.setFixedSize(screen.width()*23/100,screen.height()*60/100)
+        self.setFixedSize(screen.width()*23/100,screen.width()*(9/16)*(60/100))
         # print(self.width(), self.height())
 
 
@@ -60,8 +60,10 @@ class PlotWindow(QWidget):
         self.horizontalLayout.addWidget(self.save_btn)
         self.horizontalLayout.addWidget(self.img_label)
         self.layout.addLayout(self.horizontalLayout)
+
         screen = QtGui.QDesktopWidget().screenGeometry()
-        self.setFixedSize(screen.width() * 22 / 100, screen.height() * 14.5 / 100)
+        # print(screen)
+        self.setFixedSize(screen.width() * 22 / 100, screen.width() * (9/16)*(14.5 / 100))
 
 
     def btn_state(self):
@@ -119,7 +121,7 @@ class PlotWindow(QWidget):
         # img_data = Image.fromarray(img_data)
         # img_data.save(r"{}\{}.png".format(dir_path, img_name))
         import  numpy
-        numpy.savetxt(r"{}\{}.ndata".format(dir_path, img_name), img_data, fmt='%.2e', delimiter=' ', newline='\n', header='', footer='', comments=' ',
+        numpy.savetxt(r"{}\{}.data".format(dir_path, img_name), img_data, fmt='%.2e', delimiter=' ', newline='\n', header='', footer='', comments=' ',
                       encoding=None)
         print("save images to {}".format(dir_path))
             # print("images have saved.")

@@ -136,7 +136,7 @@ class ImgAnalysisSetting(QWidget):
         self.Detu.valueChanged.connect(self.change_Detu)
         self.Dia.valueChanged.connect(self.change_Dia)
         self.ToPwr.valueChanged.connect(self.change_ToPwr)
-        self.setFixedSize(screen.width()*34/100,screen.height()*18/100)
+        self.setFixedSize(screen.width()*31/100,screen.width()*(9/16)*18/100)
 
     def update_image2(self,img_dict):
         self.img.setImage(img_dict['img_data'])
@@ -218,15 +218,15 @@ class ImgAnalysisSetting(QWidget):
 
     def change_Detu(self):
         settings.widget_params["Analyse Data Setting"]["Detu"] = self.Detu.value()
-        print("new Detu is ", settings.widget_params["Analyse Data Setting"]["Detu"])
+        # print("new Detu is ", settings.widget_params["Analyse Data Setting"]["Detu"])
 
     def change_Dia(self):
         settings.widget_params["Analyse Data Setting"]["Dia"] = self.Dia.value()
-        print("new Dia is ", settings.widget_params["Analyse Data Setting"]["Dia"])
+        # print("new Dia is ", settings.widget_params["Analyse Data Setting"]["Dia"])
 
     def change_ToPwr(self):
         settings.widget_params["Analyse Data Setting"]["ToPwr"] = self.ToPwr.value()
-        print("new toPwr is ", settings.widget_params["Analyse Data Setting"]["ToPwr"])
+        # print("new toPwr is ", settings.widget_params["Analyse Data Setting"]["ToPwr"])
 
 
 class PlotWindow(QWidget):
