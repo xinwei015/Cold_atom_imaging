@@ -97,6 +97,9 @@ class FittingdataWidget(QtWidgets.QWidget):
     def change_cal(self,mode):
         if mode.isChecked():
             settings.widget_params["Fitting Setting"]["mode"] = 1
+        else:
+            settings.widget_params["Fitting Setting"]["mode"] = 0
+
 
 
 
