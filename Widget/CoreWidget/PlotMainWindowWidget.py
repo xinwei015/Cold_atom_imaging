@@ -180,8 +180,8 @@ class PlotMainWindow(QWidget):
                 self.h_axes2.setData(num_h_data, h_data2)
                 self.v_axes2.setData(v_data2, num_v_data)
 
-            # self.h_axes.setData(num_h_data, h_data)
-            # self.v_axes.setData(v_data, num_v_data)
+            self.h_axes.setData(num_h_data, h_data)
+            self.v_axes.setData(v_data, num_v_data)
 
 
     def calculate_roi(self):
