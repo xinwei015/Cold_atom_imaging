@@ -169,10 +169,7 @@ def calculateAtom(TotalPhotons):
         CCDPlSize = [3.75, 3.75]
         pixelArea = CCDPlSize[0] * CCDPlSize[1] * 1e-12
 
-        if settings.widget_params["Image Display Setting"]["magStatus"]:
-            Magnification = settings.widget_params["Image Display Setting"]["magValue"]
-        else:
-            Magnification = 1
+        Magnification = settings.widget_params["Analyse Data Setting"]["magValue"]
 
         ABSCounts = pixelArea / sigma * TotalPhotons * Magnification ** 2
         ABSCountsFitting = pixelArea / sigma * NCountsfitting * Magnification ** 2
