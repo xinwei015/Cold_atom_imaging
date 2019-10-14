@@ -33,9 +33,12 @@ class TestMainWindow(QMainWindow):
         self.fileMenu = self.menuBar().addMenu("File")
         self.windowMenu = self.menuBar().addMenu("Window")
         self.optionMenu = self.menuBar().addMenu("Options")
+        self.path = self.menuBar().addMenu("")
+        self.path.setEnabled(False)
 
         self.plotToolbar = self.addToolBar("Plot")
         self.expToolbar = self.addToolBar("Experiment")
+        self.testToolbar = self.addToolBar("test")
 
         # experiment start/stop buttons
         self.start_exp_action = Helper.create_action(self, "Start Experiment", slot=self.start_exp, icon="start")#name and action and image
@@ -65,19 +68,19 @@ class TestMainWindow(QMainWindow):
         self.windowMenu.addAction(imgQueueDockWidget.toggleViewAction())
 
 
-        # image display setting dock
-        self.img_display_setting = ImgDisplaySetting()
-        self.img_display_setting.img_sub.connect(self.plot_main_window.img_plot2)
-        self.img_display_setting.img_sub2.connect(self.plot_main_window.img_plot3)
-
-        # create a QDockWidget
-        displaySettingDockWidget = QDockWidget("Display Setting", self)
-        displaySettingDockWidget.setObjectName("displaySettingDockWidget")
-        displaySettingDockWidget.setAllowedAreas(Qt.RightDockWidgetArea)
-        displaySettingDockWidget.setWidget(self.img_display_setting)
-        self.addDockWidget(Qt.RightDockWidgetArea, displaySettingDockWidget)
-        # enable the toggle view action
-        self.windowMenu.addAction(displaySettingDockWidget.toggleViewAction())
+        # # image display setting dock
+        # self.img_display_setting = ImgDisplaySetting()
+        # self.img_display_setting.img_sub.connect(self.plot_main_window.img_plot2)
+        # self.img_display_setting.img_sub2.connect(self.plot_main_window.img_plot3)
+        #
+        # # create a QDockWidget
+        # displaySettingDockWidget = QDockWidget("Display Setting", self)
+        # displaySettingDockWidget.setObjectName("displaySettingDockWidget")
+        # displaySettingDockWidget.setAllowedAreas(Qt.RightDockWidgetArea)
+        # displaySettingDockWidget.setWidget(self.img_display_setting)
+        # self.addDockWidget(Qt.RightDockWidgetArea, displaySettingDockWidget)
+        # # enable the toggle view action
+        # self.windowMenu.addAction(displaySettingDockWidget.toggleViewAction())
 
         # image analyse setting dock
         self.img_analyse_setting = ImgAnalysisSetting()
@@ -92,24 +95,28 @@ class TestMainWindow(QMainWindow):
 
         # camera setting dock
         self.camera_setting = CameraOption()
-        cameraSettingDockWidget = QDockWidget("Camera Setting", self)
+        cameraSettingDockWidget = QDockWidget("Setting", self)
         cameraSettingDockWidget.setObjectName("cameraSettingDockWidget")
-        cameraSettingDockWidget.setAllowedAreas(Qt.RightDockWidgetArea)
+        cameraSettingDockWidget.setAllowedAreas(Qt.BottomDockWidgetArea)
         cameraSettingDockWidget.setWidget(self.camera_setting)
-        self.addDockWidget(Qt.RightDockWidgetArea, cameraSettingDockWidget)
+        self.addDockWidget(Qt.BottomDockWidgetArea, cameraSettingDockWidget)
         self.windowMenu.addAction(cameraSettingDockWidget.toggleViewAction())
 
+        self.camera_setting.img_sub.connect(self.plot_main_window.img_plot2)
+        self.camera_setting.img_sub2.connect(self.plot_main_window.img_plot3)
+
         # output dock
-        self.prompt_dock = PromptWidget()
-        promptDockWidget = QDockWidget("Output Console", self)
-        promptDockWidget.setObjectName("consoleDockWidget")
-        promptDockWidget.setAllowedAreas(Qt.BottomDockWidgetArea)
-        promptDockWidget.setWidget(self.prompt_dock)
-        self.addDockWidget(Qt.BottomDockWidgetArea, promptDockWidget)
-        # redirect print statements to show a copy on "console"
+        # self.prompt_dock = PromptWidget()
+        # promptDockWidget = QDockWidget("Output Console", self)
+        # promptDockWidget.setObjectName("consoleDockWidget")
+        # # promptDockWidget.setAllowedAreas(Qt.RightDockWidgetArea)
+        # promptDockWidget.setWidget(self.prompt_dock)
+        # self.addDockWidget(Qt.RightDockWidgetArea, promptDockWidget)
+        # # redirect print statements to show a copy on "console"
         sys.stdout = Helper.print_redirect()
         sys.stdout.print_signal.connect(self.update_console)
-        self.windowMenu.addAction(promptDockWidget.toggleViewAction())
+        # # sys.stdout.print_signal.connect(self.update_pro)
+        # self.windowMenu.addAction(promptDockWidget.toggleViewAction())
 
         # Fitting dock
         self.Fitting_dock = FittingdataWidget()
@@ -124,9 +131,9 @@ class TestMainWindow(QMainWindow):
         self.result_dock = ResultWidget()
         resultDockWidget = QDockWidget("Result Console", self)
         resultDockWidget.setObjectName("resultDockWidget")
-        resultDockWidget.setAllowedAreas(Qt.BottomDockWidgetArea)
+        resultDockWidget.setAllowedAreas(Qt.RightDockWidgetArea)
         resultDockWidget.setWidget(self.result_dock)
-        self.addDockWidget(Qt.BottomDockWidgetArea, resultDockWidget)
+        self.addDockWidget(Qt.RightDockWidgetArea, resultDockWidget)
         self.windowMenu.addAction(resultDockWidget.toggleViewAction())
 
         ### TOOLBAR MENU ###
@@ -240,9 +247,9 @@ class TestMainWindow(QMainWindow):
                 # print("camera thread quit")
                 if mode.text() == 'video mode':
                     settings.widget_params["Image Display Setting"]["mode"] = 0
-                    self.img_display_setting.hardware_mode.setEnabled(True)
-                    self.img_display_setting.video_mode.setEnabled(False)
-                    self.img_display_setting.hardware_mode.setChecked(False)
+                    self.camera_setting.hardware_mode.setEnabled(True)
+                    self.camera_setting.video_mode.setEnabled(False)
+                    self.camera_setting.hardware_mode.setChecked(False)
                     self.camera_setting.apply_button.setEnabled(True)
                     self.camera_setting.camera_further_setting.gain_value.setEnabled(True)
                     self.camera_setting.camera_further_setting.exposure_time.setEnabled(True)
@@ -251,9 +258,9 @@ class TestMainWindow(QMainWindow):
 
                 elif mode.text() == 'hardware mode':
                     settings.widget_params["Image Display Setting"]["mode"] = 2
-                    self.img_display_setting.hardware_mode.setEnabled(False)
-                    self.img_display_setting.video_mode.setChecked(False)
-                    self.img_display_setting.video_mode.setEnabled(True)
+                    self.camera_setting.hardware_mode.setEnabled(False)
+                    self.camera_setting.video_mode.setChecked(False)
+                    self.camera_setting.video_mode.setEnabled(True)
                     self.camera_setting.apply_button.setEnabled(False)
                     self.camera_setting.camera_further_setting.gain_value.setEnabled(False)
                     self.camera_setting.camera_further_setting.exposure_time.setEnabled(False)
@@ -288,8 +295,8 @@ class TestMainWindow(QMainWindow):
             self.LoadImgAction.setEnabled(False)
             self.camera_setting.AbsTriger.setEnabled(False)
 
-            self.img_display_setting.video_mode.setEnabled(True)
-            self.img_display_setting.hardware_mode.setEnabled(True)
+            self.camera_setting.video_mode.setEnabled(True)
+            self.camera_setting.hardware_mode.setEnabled(True)
 
             self.clear_img_stack_action.setEnabled(False)
             self.clear_main_win_action.setEnabled(False)
@@ -313,13 +320,13 @@ class TestMainWindow(QMainWindow):
             self.acquiring = True
 
             if settings.widget_params["Analyse Data Setting"]["AbsTrigerStatus"]:
-                self.img_display_setting.hardware_mode.setChecked(True)
-                self.img_display_setting.hardware_mode.setEnabled(False)
-                self.img_display_setting.video_mode.setEnabled(False)
+                self.camera_setting.hardware_mode.setChecked(True)
+                self.camera_setting.hardware_mode.setEnabled(False)
+                self.camera_setting.video_mode.setEnabled(False)
             else:
                 settings.widget_params["Image Display Setting"]["mode"] = 0
-                self.img_display_setting.video_mode.setChecked(True)
-                self.img_display_setting.video_mode.setEnabled(False)
+                self.camera_setting.video_mode.setChecked(True)
+                self.camera_setting.video_mode.setEnabled(False)
             # self.acquiring = True
             self.stop_exp_action.setEnabled(True)
         else:
@@ -351,10 +358,10 @@ class TestMainWindow(QMainWindow):
         self.camera_setting.further_setting.setEnabled(False)
         settings.widget_params["Image Display Setting"]["imgSource"] = "disk"
 
-        self.img_display_setting.video_mode.setChecked(False)
-        self.img_display_setting.hardware_mode.setChecked(False)
-        self.img_display_setting.video_mode.setEnabled(False)
-        self.img_display_setting.hardware_mode.setEnabled(False)
+        self.camera_setting.video_mode.setChecked(False)
+        self.camera_setting.hardware_mode.setChecked(False)
+        self.camera_setting.video_mode.setEnabled(False)
+        self.camera_setting.hardware_mode.setEnabled(False)
 
 
     def connect_slot2signal(self):
@@ -362,11 +369,11 @@ class TestMainWindow(QMainWindow):
         # image display widget
         # all parameters' signal are connected to global parameters.
 
-        self.img_display_setting.video_mode.stateChanged.connect(
-            lambda: self.change_camera_mode(self.img_display_setting.video_mode)
+        self.camera_setting.video_mode.stateChanged.connect(
+            lambda: self.change_camera_mode(self.camera_setting.video_mode)
         )
-        self.img_display_setting.hardware_mode.stateChanged.connect(
-            lambda: self.change_camera_mode(self.img_display_setting.hardware_mode)
+        self.camera_setting.hardware_mode.stateChanged.connect(
+            lambda: self.change_camera_mode(self.camera_setting.hardware_mode)
         )
 
         # image stack widget
@@ -381,16 +388,16 @@ class TestMainWindow(QMainWindow):
         self.plot_main_window.fittingdata.connect(self.Fitting_dock.change_label)
 
         # analyse data widget
-        self.img_analyse_setting.roi.stateChanged.connect(
-            lambda: self.plot_main_window.add_roi(self.img_analyse_setting.roi, self.img_analyse_setting.cross_axes))
-        self.img_analyse_setting.cross_axes.stateChanged.connect(
-            lambda: self.plot_main_window.add_cross_axes(self.img_analyse_setting.cross_axes))
+        self.camera_setting.roi.stateChanged.connect(
+            lambda: self.plot_main_window.add_roi(self.camera_setting.roi, self.camera_setting.cross_axes))
+        self.camera_setting.cross_axes.stateChanged.connect(
+            lambda: self.plot_main_window.add_cross_axes(self.camera_setting.cross_axes))
         # self.img_analyse_setting.cross_axes2.stateChanged.connect(
         #     lambda: self.plot_main_window.add_cross_axes2(self.img_analyse_setting.cross_axes2))
         self.camera_setting.AbsTriger.stateChanged.connect(
             lambda: self.absclick(self.camera_setting.AbsTriger))
-        self.img_analyse_setting.auto_save.stateChanged.connect(
-            lambda: self.autosave(self.img_analyse_setting.auto_save))
+        self.camera_setting.auto_save.stateChanged.connect(
+            lambda: self.autosave(self.camera_setting.auto_save))
 
         # camera setting widget
         self.camera_setting.apply_button.clicked.connect(self.camera_setting.camera_further_setting.change_exposure)
@@ -499,7 +506,8 @@ class TestMainWindow(QMainWindow):
     def Setpath(self):
         mpath = QFileDialog.getExistingDirectory(self, "Set path")
         settings.m_path = Path(mpath)
-        print(settings.m_path)
+        self.path.setTitle('##  Save file to: ' + str(settings.m_path) + '  ##')
+        # print(settings.m_path)
 
 
     def Mainwindowfile_save_imgs(self):
@@ -619,16 +627,19 @@ class TestMainWindow(QMainWindow):
         # print(type(settings.imgData["img_size"]))
         return img
 
+
     def update_console(self, stri):
         MAX_LINES = 50
         stri = str(stri)
-        new_text = self.prompt_dock.console_text() + '\n' + stri
+        new_text = self.result_dock.console_text() + '\n' + stri
         line_list = new_text.splitlines()
         N_lines = min(MAX_LINES, len(line_list))
         # limit output lines
         new_text = '\n'.join(line_list[-N_lines:])
-        self.prompt_dock.console_text(new_text)
-        self.prompt_dock.automatic_scroll()
+        self.result_dock.console_text(new_text)
+        self.result_dock.automatic_scroll()
+        # self.prompt.setTitle(stri)
+
 
     def update_main_plot_win(self, img_dict): #video_mode do this
         """
