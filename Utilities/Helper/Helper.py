@@ -19,6 +19,7 @@ class print_redirect(QObject):
     def write(self, stri):
         self.old_stdout.write(stri)
         # emit the stdout statements
+        # print('1')
         self.print_signal.emit(stri)
 
     def flush(self):

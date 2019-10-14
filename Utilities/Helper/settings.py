@@ -4,10 +4,9 @@ def inintParams():
         "Image Display Setting": {
             "bkgStatus": False,
             "pfStatus": False,
-            "magStatus": False,
+            "magStatus": True,
             "imgSource": "disk",  # default is disk, once click the start experiment button, then change to camera
             "mode": 0,  # 0 is video mode; 2 is hardware mode
-            "magValue": 5.1,
             "pfMin": 0,
             "pfMax": 1000,
             "img_stack_num": 4,
@@ -22,6 +21,7 @@ def inintParams():
             "add_cross_axes": False,
             # "add_ten": False,
             "AbsTrigerStatus": False,
+            "magValue": 5.1,
             "ToPwr": 110,
             "Detu": 6,
             "Dia": 14,
