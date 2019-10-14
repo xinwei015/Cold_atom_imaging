@@ -66,16 +66,16 @@ class ImgDisplaySetting(QWidget):
         mf.addWidget(self.magStatus)
         mf.addWidget(self.magValue)
 
-        mode = QHBoxLayout()
-        self.video_mode = QCheckBox("video mode", self)
-        self.hardware_mode = QCheckBox("hardware mode", self)
-        mode.addWidget(self.video_mode)
-        mode.addWidget(self.hardware_mode)
+        # mode = QHBoxLayout()
+        # self.video_mode = QCheckBox("video mode", self)
+        # self.hardware_mode = QCheckBox("hardware mode", self)
+        # mode.addWidget(self.video_mode)
+        # mode.addWidget(self.hardware_mode)
 
         layout1.addLayout(bkg)
         layout1.addLayout(pf)
         layout1.addLayout(mf)
-        layout1.addLayout(mode)
+        # layout1.addLayout(mode)
 
         self.GroupBox1.setLayout(layout1)
         # self.GroupBox2.setLayout(layout2)
@@ -137,10 +137,10 @@ class ImgDisplaySetting(QWidget):
         print('The background image has been added.')
 
     def default_setting(self):
-        self.video_mode.setChecked(False)
-        self.hardware_mode.setChecked(False)
-        self.video_mode.setEnabled(False)
-        self.hardware_mode.setEnabled(False)
+        # self.video_mode.setChecked(False)
+        # self.hardware_mode.setChecked(False)
+        # self.video_mode.setEnabled(False)
+        # self.hardware_mode.setEnabled(False)
 
         self.bkgStatus.setChecked(settings.widget_params["Image Display Setting"]["bkgStatus"])
         self.pfStatus.setChecked(settings.widget_params["Image Display Setting"]["pfStatus"])

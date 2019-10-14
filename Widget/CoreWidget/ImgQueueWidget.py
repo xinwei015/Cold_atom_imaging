@@ -27,7 +27,7 @@ class ImgQueueWidget(QWidget):
             self.verticalLayout.addWidget(plot_win)
         self.setLayout(self.verticalLayout)
         screen = QtGui.QDesktopWidget().screenGeometry()
-        self.setFixedSize(screen.width()*23/100,screen.width()*(9/16)*(60/100))
+        self.setFixedSize(screen.width()*16/100,screen.width()*(9/16)*(60/100))
         # print(self.width(), self.height())
 
 
@@ -43,6 +43,7 @@ class PlotWindow(QWidget):
         self.viewport = GraphicsLayoutWidget()
         self.video_view = self.viewport.addViewBox()
         self.video = pg.ImageItem()
+        # self.video_view.clicked.connect(self.btn_state)
         self.video_view.addItem(self.video)
         self.video_view.setMouseEnabled(x=False, y=False)#make it can not move
 
@@ -51,24 +52,33 @@ class PlotWindow(QWidget):
         self.layout.addWidget(self.viewport)
         self.img_label = QLabel()
 
-        self.push_btn = QPushButton("sent", self)
-        self.push_btn.clicked.connect(self.btn_state)
-        self.save_btn = QPushButton("save", self)
-        self.save_btn.clicked.connect(self.save_image)
-        self.horizontalLayout = QVBoxLayout()
-        self.horizontalLayout.addWidget(self.push_btn)
-        self.horizontalLayout.addWidget(self.save_btn)
-        self.horizontalLayout.addWidget(self.img_label)
-        self.layout.addLayout(self.horizontalLayout)
+        # self.push_btn = QPushButton("sent", self)
+        # self.push_btn.clicked.connect(self.btn_state)
+        # self.save_btn = QPushButton("save", self)
+        # self.save_btn.clicked.connect(self.save_image)
+        # self.horizontalLayout = QVBoxLayout()
+        # self.horizontalLayout.addWidget(self.push_btn)
+        # self.horizontalLayout.addWidget(self.save_btn)
+        # self.horizontalLayout.addWidget(self.img_label)
+        # self.layout.addLayout(self.horizontalLayout)
 
         screen = QtGui.QDesktopWidget().screenGeometry()
         # print(screen)
-        self.setFixedSize(screen.width() * 22 / 100, screen.width() * (9/16)*(14.5 / 100))
+        self.setFixedSize(screen.width() * 15 / 100, screen.width() * (9/16)*(14 / 100))
 
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.btn_state()
+
+    def mouseDoubleClickEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.save_image()
 
     def btn_state(self):
         if self.video.image is None:
             print("have no image in window")
+            # from MainWindow import TestMainWindow
+            # TestMainWindow.path.setTitle(str('have no image in window'))
             return
         # img_analyse_setting.roi.setChecked(False)
         img_dict = {'img_data': np.array(self.video.image), 'img_name': self.img_label.text()}

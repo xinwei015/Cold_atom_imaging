@@ -44,7 +44,7 @@ class PlotMainWindow(QWidget):
         self.data = None
         self.data_shape = None
         screen = QtGui.QDesktopWidget().screenGeometry()
-        self.setFixedSize(screen.width()*40/100,screen.width()*(9/16)*63/100)
+        self.setFixedSize(screen.width()*44/100,screen.width()*(9/16)*63/100)
         # print(self.width(), self.height())
 
 
@@ -72,14 +72,14 @@ class PlotMainWindow(QWidget):
             # make sure ROI is drawn above image
             self.roi.setZValue(10)
             # if settings.widget_params["Analyse Data Setting"]["add_ten"]:
-            self.vLine = pg.InfiniteLine(angle=90, movable=False)
-            self.hLine = pg.InfiniteLine(angle=0, movable=False)
-            self.vLine.setPen(color='r', width=3)
-            self.hLine.setPen(color='r', width=3)
-            self.vLine.setPos(self.roi.pos()[0]+self.roi.size()[0]/2)
-            self.hLine.setPos(self.roi.pos()[1]+self.roi.size()[1]/2)
-            self.viewBox.addItem(self.vLine, ignoreBounds=True)
-            self.viewBox.addItem(self.hLine, ignoreBounds=True)
+            # self.vLine = pg.InfiniteLine(angle=90, movable=False)
+            # self.hLine = pg.InfiniteLine(angle=0, movable=False)
+            # self.vLine.setPen(color='r', width=3)
+            # self.hLine.setPen(color='r', width=3)
+            # self.vLine.setPos(self.roi.pos()[0]+self.roi.size()[0]/2)
+            # self.hLine.setPos(self.roi.pos()[1]+self.roi.size()[1]/2)
+            # self.viewBox.addItem(self.vLine, ignoreBounds=True)
+            # self.viewBox.addItem(self.hLine, ignoreBounds=True)
             self.roi.sigRegionChanged.connect(self.update_ch_fitting_cs)
             self.roi.sigRegionChanged.connect(self.calculate_roi)
             settings.widget_params["Analyse Data Setting"]["roiStatus"] = True
@@ -104,6 +104,14 @@ class PlotMainWindow(QWidget):
                 # TODO: vertical axes hasn't finishe
                 self.v_axes = self.viewBox.plot()
                 self.v_axes.setPen(color='g', width=2)
+                self.vLine = pg.InfiniteLine(angle=90, movable=False)
+                self.hLine = pg.InfiniteLine(angle=0, movable=False)
+                self.vLine.setPen(color='r', width=3)
+                self.hLine.setPen(color='r', width=3)
+                self.vLine.setPos(self.roi.pos()[0] + self.roi.size()[0] / 2)
+                self.hLine.setPos(self.roi.pos()[1] + self.roi.size()[1] / 2)
+                self.viewBox.addItem(self.vLine, ignoreBounds=True)
+                self.viewBox.addItem(self.hLine, ignoreBounds=True)
                 if settings.widget_params["Fitting Setting"]["mode"] == 1:
                     self.h_axes2 = self.viewBox.plot()
                     self.h_axes2.setPen(color='b', width=1)  # x
@@ -117,6 +125,11 @@ class PlotMainWindow(QWidget):
                 return
         else:
             cbk_state.setCheckState(0)
+            self.viewBox.clear()
+            # add image item
+            self.viewBox.addItem(self.img)
+            if settings.widget_params["Analyse Data Setting"]["roiStatus"]:
+                self.viewBox.addItem(self.roi)
             settings.widget_params["Analyse Data Setting"]["add_cross_axes"] = False
             # remove plotItem if cross axes has added
             if self.h_axes is not None and self.v_axes is not None:
@@ -127,9 +140,9 @@ class PlotMainWindow(QWidget):
         pass
 
     def update_ch_fitting_cs(self):
-    # if settings.widget_params["Analyse Data Setting"]["add_ten"]:
-        self.vLine.setPos(self.roi.pos()[0]+self.roi.size()[0]/2)
-        self.hLine.setPos(self.roi.pos()[1]+self.roi.size()[1]/2)
+        if settings.widget_params["Analyse Data Setting"]["add_cross_axes"]:
+            self.vLine.setPos(self.roi.pos()[0]+self.roi.size()[0]/2)
+            self.hLine.setPos(self.roi.pos()[1]+self.roi.size()[1]/2)
         if settings.widget_params["Analyse Data Setting"]["add_cross_axes"]:
             # fitting process
             # if settings.widget_params["Image Display Setting"]["magStatus"]:
@@ -245,10 +258,11 @@ class PlotMainWindow(QWidget):
             settings.imgData["Img_photon_range"] = np.zeros((settings.imgData["Img_data"].shape[0], settings.imgData["Img_data"].shape[1]))
             for i in range(settings.imgData["Img_data"].shape[0]):
                 for j in range(settings.imgData["Img_data"].shape[1]):
-                    if settings.imgData["Img_data"][i,j] >= settings.widget_params["Image Display Setting"]["pfMin"] and settings.imgData["Img_data"][i,j] <= settings.widget_params["Image Display Setting"]["pfMax"]:
-                        settings.imgData["Img_photon_range"][i,j] = settings.imgData["Img_data"][i,j]
-                    else:
-                        settings.imgData["Img_photon_range"][i, j] = 0
+                    if settings.imgData["Img_data"][i,j] <= settings.widget_params["Image Display Setting"]["pfMin"]:
+                        settings.imgData["Img_photon_range"][i,j] = settings.widget_params["Image Display Setting"]["pfMin"]
+                    if settings.imgData["Img_data"][i,j] >= settings.widget_params["Image Display Setting"]["pfMax"]:
+                        settings.imgData["Img_photon_range"][i,j] = settings.widget_params["Image Display Setting"]["pfMax"]
+
             self.img.setImage(settings.imgData["Img_photon_range"])
             self.data = settings.imgData["Img_photon_range"]
             self.data_shape = settings.imgData["Img_photon_range"].shape

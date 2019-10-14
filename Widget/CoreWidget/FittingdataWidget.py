@@ -92,7 +92,7 @@ class FittingdataWidget(QtWidgets.QWidget):
         self.setLayout(self.fLayout)
 
         screen = QtGui.QDesktopWidget().screenGeometry()
-        self.setFixedSize(screen.width()*14/100,screen.width()*(9/16)*19/100)
+        self.setFixedWidth(screen.width()*13/100)
 
     def change_cal(self,mode):
         if mode.isChecked():

@@ -3,6 +3,7 @@ from PyQt5.QtGui import QFont
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import *
 from Utilities.Helper import settings
+from PyQt5.QtCore import *
 
 
 
@@ -72,8 +73,48 @@ class ResultWidget(QtWidgets.QWidget):
         self.totalLayout.setStretchFactor(self.wLayout, 4)
         self.setLayout(self.totalLayout)
 
+        self.prompt = QDialog()  # create a dialog
+        self.consoleTextEdit = QtWidgets.QTextEdit()
+        self.consoleTextEdit.setReadOnly(True)
+
+        self.verticalLayout = QtWidgets.QVBoxLayout()
+        self.verticalLayout.addWidget(self.consoleTextEdit)
+        self.prompt.setLayout(self.verticalLayout)
+
         screen = QtGui.QDesktopWidget().screenGeometry()
-        self.setFixedSize(screen.width()*31/100,screen.width()*(9/16)*19/100)
+        self.setFixedHeight(screen.width()*(9/16)*20/100)
+        # self.prompt.setFixedWidth(screen.width()*50/100)
+
+
+    def promptset(self):
+        self.prompt.setWindowTitle('prompt')
+        self.prompt.setWindowModality(Qt.NonModal)
+        self.prompt.setWindowFlags(Qt.WindowStaysOnTopHint)
+        self.prompt.show()
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.promptset()
+
+    def console_text(self, new_text=None):
+
+        """get/set method for the text in the console"""
+
+        if new_text == None:
+
+            return str((self.consoleTextEdit.toPlainText())).rstrip()
+
+        else:
+
+            self.consoleTextEdit.setPlainText(new_text)
+
+    def automatic_scroll(self):
+        """
+        performs an automatic scroll up
+        the latest text shall always be in view
+        """
+        sb = self.consoleTextEdit.verticalScrollBar()
+        sb.setValue(sb.maximum())
 
     def change_cal(self,mode):
         if mode.isChecked():

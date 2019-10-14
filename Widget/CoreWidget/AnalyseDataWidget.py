@@ -21,18 +21,19 @@ class ImgAnalysisSetting(QWidget):
         super(ImgAnalysisSetting, self).__init__(parent=parent)
         self.parent = parent
 
-        self.horizontalGroupBox1 = QGroupBox("Analyse Data Setting")
-        self.horizontalGroupBox2 = QGroupBox("Experiment Parameters")
+        self.horizontalGroupBox1 = QGroupBox("absorbtion Parameters")
+        self.horizontalGroupBox2 = QGroupBox("flurence Parameters")
         layout1 = QHBoxLayout()
         layout2 = QHBoxLayout()
 
-        self.roi = QCheckBox("roi", self)
-        self.cross_axes = QCheckBox("cross axes", self)
-        # self.cross_axes2 = QCheckBox("cross axes2", self)
-        self.auto_save = QCheckBox("auto save", self)
-########################################################################################
-        # self.absorb_img.clicked.connect(self.absorb_setting)
-        self.dia = QDialog()  # create a dialog
+        self.mag = QLabel('magnification',self)
+        self.magValue = QDoubleSpinBox()
+        self.magValue.setRange(0.01, 10)
+        self.magValue.setSingleStep(0.1)
+        layout1.addWidget(self.mag)
+        layout1.addWidget(self.magValue)
+
+        self.dia1 = QDialog()  # create a dialog
         self.dia2 = QDialog()  # create a dialog
         self.prefix_label = QLabel('Prefix',self)
         self.prefix_text = QLineEdit('Data',self)
@@ -51,6 +52,8 @@ class ImgAnalysisSetting(QWidget):
         pg.setConfigOptions(imageAxisOrder='row-major')
         # pg.setConfigOptions(leftButtonPan=False)
         self.viewBox = l1.addPlot()
+        self.viewBox.hideAxis('left')  # hide the left and right
+        self.viewBox.hideAxis('bottom')
         self.img = pg.ImageItem()
         self.viewBox.setMouseEnabled(x=False, y=False)  # make it can not move
         # pg.setConfigOptions(leftButtonPan=False)
@@ -68,7 +71,6 @@ class ImgAnalysisSetting(QWidget):
         # self.img_Push1.setEnabled(False)
         self.img_Push2.setEnabled(False)
 
-
         self.layoutv2 = QVBoxLayout(self)
 
         plot_win1 = PlotWindow()
@@ -77,21 +79,22 @@ class ImgAnalysisSetting(QWidget):
         plot_win2.myserial = 1
         plot_win3 = PlotWindow()
         plot_win3.myserial = 2
+
         self.layoutv2.addWidget(plot_win1)
         self.layoutv2.addWidget(plot_win2)
         self.layoutv2.addWidget(plot_win3)
-        ##################
+
         self.layoutv.addLayout(self.layoutv2)
         self.layoutv.addWidget(self.img_Push1)
         self.layoutv.addLayout(self.layoutv1)
 
         self.abs_img.connect(self.update_image2)
 
-        self.dia.setLayout(self.layoutv)
+        self.dia1.setLayout(self.layoutv)
         screen = QtGui.QDesktopWidget().screenGeometry()  # Control window size
-        self.dia.setFixedSize(screen.width() * 56/ 100, screen.height() * 50/ 100)
+        self.dia1.setFixedSize(screen.width() * 51/ 100, screen.height() * 50/ 100)
         win1.setFixedSize(screen.width() * 30 / 100, screen.height() * 45/ 100)
-###################################################################################
+
         ToPwrLabel = QLabel('TotPwr_mW')
         self.ToPwr = QDoubleSpinBox()
         self.ToPwr.setMaximum(999)
@@ -108,10 +111,10 @@ class ImgAnalysisSetting(QWidget):
         self.Dia.setMinimum(0)
         self.Dia.setSingleStep(1)
 
-        layout1.addWidget(self.roi)
-        layout1.addWidget(self.cross_axes)
+        # layout1.addWidget(self.roi)
+        # layout1.addWidget(self.cross_axes)
         # layout1.addWidget(self.cross_axes2)
-        layout1.addWidget(self.auto_save)
+        # layout1.addWidget(self.auto_save)
         # layout1.addWidget(self.piefix)
         # layout1.addWidget(self.absorb_img)
 
@@ -133,10 +136,11 @@ class ImgAnalysisSetting(QWidget):
 
         self.default_setting()
 
+        self.magValue.valueChanged.connect(self.change_mag)
         self.Detu.valueChanged.connect(self.change_Detu)
         self.Dia.valueChanged.connect(self.change_Dia)
         self.ToPwr.valueChanged.connect(self.change_ToPwr)
-        self.setFixedSize(screen.width()*31/100,screen.width()*(9/16)*18/100)
+        self.setFixedHeight(screen.width()*(9/16)*22/100)
 
     def update_image2(self,img_dict):
         self.img.setImage(img_dict['img_data'])
@@ -197,9 +201,10 @@ class ImgAnalysisSetting(QWidget):
 
 
     def absorb_setting(self):
-        self.dia.setWindowTitle('absorb image')
-        self.dia.setWindowModality(Qt.ApplicationModal)
-        self.dia.exec_()
+        self.dia1.setWindowTitle('absorb image')
+        self.dia1.setWindowModality(Qt.NonModal)
+        self.dia1.setWindowFlags(Qt.WindowStaysOnTopHint)
+        self.dia1.show()
 
     def prefix_setting(self):
         self.dia2.setWindowTitle('prefix setting')
@@ -208,13 +213,17 @@ class ImgAnalysisSetting(QWidget):
 
     def default_setting(self):
 
-        self.roi.setChecked(False)
-        self.cross_axes.setChecked(False)
+        # self.roi.setChecked(False)
+        # self.cross_axes.setChecked(False)
         # self.cross_axes2.setChecked(False)
-
+        self.magValue.setValue(settings.widget_params["Analyse Data Setting"]["magValue"])
         self.Detu.setValue(settings.widget_params["Analyse Data Setting"]["Detu"])
         self.Dia.setValue(settings.widget_params["Analyse Data Setting"]["Dia"])
         self.ToPwr.setValue(settings.widget_params["Analyse Data Setting"]["ToPwr"])
+
+    def change_mag(self):
+        settings.widget_params["Analyse Data Setting"]["magValue"] = self.magValue.value()
+
 
     def change_Detu(self):
         settings.widget_params["Analyse Data Setting"]["Detu"] = self.Detu.value()
@@ -251,52 +260,47 @@ class PlotWindow(QWidget):
         self.layout.addWidget(self.viewport)
         self.img_label = QLabel()
 
-        self.push_btn = QPushButton("load", self)
-        self.push_btn.clicked.connect(self.load_state)
-        self.save_btn = QPushButton("save", self)
-        self.save_btn.clicked.connect(self.save_image)
-        self.horizontalLayout = QVBoxLayout()
-        self.horizontalLayout.addWidget(self.push_btn)
-        self.horizontalLayout.addWidget(self.save_btn)
-        self.horizontalLayout.addWidget(self.img_label)
-        self.layout.addLayout(self.horizontalLayout)
+        # self.horizontalLayout = QVBoxLayout()
+        # self.horizontalLayout.addWidget(self.img_label)
+        # self.layout.addLayout(self.horizontalLayout)
         screen = QtGui.QDesktopWidget().screenGeometry()
-        self.setFixedSize(screen.width() * 18 / 100, screen.height() * 14.5 / 100)
+        self.setFixedSize(screen.width() * 15 / 100, screen.height() * 14.5 / 100)
 
 
-    def load_state(self):
-        try:
-            fpath = IOHelper.get_config_setting('DATA_PATH')
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            try:
+                fpath = IOHelper.get_config_setting('DATA_PATH')
 
-            img_fpath = QFileDialog.getOpenFileName(self, "Open File", fpath)  # name path
-            strimg_fpath = str(img_fpath)
-            img_file = strimg_fpath[2:len(strimg_fpath) - 19]
-            img_path = Path(img_file)
+                img_fpath = QFileDialog.getOpenFileName(self, "Open File", fpath)  # name path
+                strimg_fpath = str(img_fpath)
+                img_file = strimg_fpath[2:len(strimg_fpath) - 19]
+                img_path = Path(img_file)
 
-            file = open(img_path)
-            linescontent = file.readlines()  # Read the file as a behavior unit
-            rows = len(linescontent)  # get the numbers fo line
-            lines = len(linescontent[0].strip().split(' '))
-            img_data = np.zeros((rows, lines))  # Initialization matrix
-            row = 0
-            for line in linescontent:
-                line = line.strip().split(' ')
-                img_data[row, :] = line[:]
-                row += 1
-            file.close()
+                file = open(img_path)
+                linescontent = file.readlines()  # Read the file as a behavior unit
+                rows = len(linescontent)  # get the numbers fo line
+                lines = len(linescontent[0].strip().split(' '))
+                img_data = np.zeros((rows, lines))  # Initialization matrix
+                row = 0
+                for line in linescontent:
+                    line = line.strip().split(' ')
+                    img_data[row, :] = line[:]
+                    row += 1
+                file.close()
 
-            img_data = img_data[::-1]
-            img_name = img_path.stem
-            img = {
-                'img_name': img_name,
-                'img_data': img_data}
-            settings.absimgDatas[self.myserial] = img_data
+                img_data = img_data[::-1]
+                img_name = img_path.stem
+                img = {
+                    'img_name': img_name,
+                    'img_data': img_data}
+                settings.absimgDatas[self.myserial] = img_data
 
-            self.img_plot(img)
-        except TypeError:
-            return
-        except PermissionError:
-            return
+                self.img_plot(img)
+            except TypeError:
+                return
+            except PermissionError:
+                return
 
     def update_console(self, stri):
         MAX_LINES = 50
