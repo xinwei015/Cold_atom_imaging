@@ -18,6 +18,7 @@ def inintParams():
         "Analyse Data Setting": {
             "autoStatus": False,
             "roiStatus": False,
+            "add_rawdata": False,
             "add_cross_axes": False,
             # "add_ten": False,
             "AbsTrigerStatus": False,
