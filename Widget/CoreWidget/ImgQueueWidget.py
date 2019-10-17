@@ -46,11 +46,11 @@ class PlotWindow(QWidget):
         # self.video_view.clicked.connect(self.btn_state)
         self.video_view.addItem(self.video)
         self.video_view.setMouseEnabled(x=False, y=False)#make it can not move
-
+        self.img_label = 'no image'
+        self.viewport.setToolTip(str(self.img_label))
         self.setLayout(self.layout)
 
         self.layout.addWidget(self.viewport)
-        self.img_label = QLabel()
 
         # self.push_btn = QPushButton("sent", self)
         # self.push_btn.clicked.connect(self.btn_state)
@@ -74,6 +74,12 @@ class PlotWindow(QWidget):
         if event.button() == Qt.LeftButton:
             self.save_image()
 
+    # def enterEvent(self, event):
+    #     pass
+    #
+    # def leaveEvent(self, event):
+    #     pass
+
     def btn_state(self):
         if self.video.image is None:
             print("have no image in window")
@@ -81,7 +87,7 @@ class PlotWindow(QWidget):
             # TestMainWindow.path.setTitle(str('have no image in window'))
             return
         # img_analyse_setting.roi.setChecked(False)
-        img_dict = {'img_data': np.array(self.video.image), 'img_name': self.img_label.text()}
+        img_dict = {'img_data': np.array(self.video.image), 'img_name': self.img_label}
         settings.imgData["Img_data"] = img_dict['img_data']
         self.img_dict.emit(img_dict)
 ######################################
@@ -125,7 +131,7 @@ class PlotWindow(QWidget):
         img_data = np.array(self.video.image)
         # load image name by path
         img_name1 = settings.widget_params["Analyse Data Setting"]["Prefix"]
-        img_name2 = (self.img_label.text())[0:20].replace(' ', '~').replace(':', '').replace('-', '')
+        img_name2 = (self.img_label)[0:20].replace(' ', '~').replace(':', '').replace('-', '')
         img_name = str(img_name1) + str(img_name2)
         img_data = img_data[::-1]
         # img_data = Image.fromarray(img_data)
@@ -142,10 +148,12 @@ class PlotWindow(QWidget):
     def img_plot(self, img_dict):
         # print(img_dict['img_data'].ndim)
         self.video.setImage(img_dict['img_data'])
-        self.img_label.setText(img_dict['img_name'])
+        self.img_label = img_dict['img_name']
+        self.viewport.setToolTip(str(self.img_label))
 
     def clear_win(self):
         self.video.clear()
-        self.img_label.setText('')
+        self.img_label = 'no image'
+        self.viewport.setToolTip(str(self.img_label))
 
 

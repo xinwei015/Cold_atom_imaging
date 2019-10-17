@@ -2,9 +2,7 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
-from Utilities.Helper import settings
-import math
-from scipy.optimize import curve_fit
+from scipy import optimize
 from Model.DataAnalysis.CaculateAtoms import *
 from decimal import *
 getcontext().prec = 4#Set significant number
@@ -48,7 +46,7 @@ class PlotMainWindow(QWidget):
         # print(self.width(), self.height())
 
 
-    def add_roi(self, roi_cbk_state, axes_cbk_state):
+    def add_roi(self, roi_cbk_state, axes_cbk_state, line_cbk_state):
         if roi_cbk_state.isChecked():
             # video mode doesn't have roi statistics
             if settings.widget_params["Image Display Setting"]["imgSource"] == "camera":
@@ -63,7 +61,7 @@ class PlotMainWindow(QWidget):
                 roi_cbk_state.setCheckState(0)
                 settings.widget_params["Analyse Data Setting"]["roiStatus"] = False
                 return
-            self.roi = pg.ROI([300, 300], [200, 200], maxBounds=QtCore.QRect(0, 0, self.data_shape[1], self.data_shape[0]),removable=True)
+            self.roi = pg.ROI([300, 300], [100, 100], maxBounds=QtCore.QRect(0, 0, self.data_shape[1], self.data_shape[0]),removable=True)
             self.roi.setPen(color='r', width=3)  # set roi width and color
             self.roi.addScaleHandle([0.5, 1], [0.5, 0.5])
             self.roi.addScaleHandle([0, 0.5], [0.5, 0.5])
@@ -86,24 +84,59 @@ class PlotMainWindow(QWidget):
         else:
             roi_cbk_state.setCheckState(0)
             axes_cbk_state.setCheckState(0)
+            line_cbk_state.setCheckState(0)
             settings.widget_params["Analyse Data Setting"]["roiStatus"] = False
-            settings.widget_params["Analyse Data Setting"]["add_cross_axes"] = False
+            settings.widget_params["Analyse Data Setting"]["add_rawdata"] = False
             # remove viewBox's items
             self.viewBox.clear()
             # add image item
             self.viewBox.addItem(self.img)
 
 
-    def add_cross_axes(self, cbk_state):
+    def add_rawdata(self, cbk_state):
         if cbk_state.isChecked():
             if settings.widget_params["Analyse Data Setting"]["roiStatus"]:
-                settings.widget_params["Analyse Data Setting"]["add_cross_axes"] = True
+                settings.widget_params["Analyse Data Setting"]["add_rawdata"] = True
                 # add horizontal axes and vertical axes
                 self.h_axes = self.viewBox.plot()
                 self.h_axes.setPen(color='y', width=2)#x
                 # TODO: vertical axes hasn't finishe
                 self.v_axes = self.viewBox.plot()
-                self.v_axes.setPen(color='g', width=2)
+                self.v_axes.setPen(color='y', width=2)
+
+            else:
+                print("please add roi first.")
+                # 0 doesn't check, 2 means check
+                cbk_state.setCheckState(0)
+                settings.widget_params["Analyse Data Setting"]["add_rawdata"] = False
+                return
+        else:
+            cbk_state.setCheckState(0)
+            self.viewBox.removeItem(self.h_axes)
+            self.viewBox.removeItem(self.v_axes)
+
+            if settings.widget_params["Analyse Data Setting"]["roiStatus"]:
+                self.viewBox.addItem(self.roi)
+            settings.widget_params["Analyse Data Setting"]["add_rawdata"] = False
+            # remove plotItem if cross axes has added
+            if self.h_axes is not None and self.v_axes is not None:
+                self.viewBox.removeItem(self.h_axes)
+                self.viewBox.removeItem(self.v_axes)
+
+    def add_fitting(self):
+        if settings.widget_params["Fitting Setting"]["mode"] == 1:
+            self.h_axes2 = self.viewBox.plot()
+            self.h_axes2.setPen(color='b', width=1)  # x
+            self.v_axes2 = self.viewBox.plot()
+            self.v_axes2.setPen(color='b', width=1)
+        else:
+            self.viewBox.removeItem(self.h_axes2)
+            self.viewBox.removeItem(self.v_axes2)
+
+    def add_cross_axes(self, cbk_state):
+        if cbk_state.isChecked():
+            if settings.widget_params["Analyse Data Setting"]["roiStatus"]:
+                settings.widget_params["Analyse Data Setting"]["add_cross_axes"] = True
                 self.vLine = pg.InfiniteLine(angle=90, movable=False)
                 self.hLine = pg.InfiniteLine(angle=0, movable=False)
                 self.vLine.setPen(color='r', width=3)
@@ -112,43 +145,24 @@ class PlotMainWindow(QWidget):
                 self.hLine.setPos(self.roi.pos()[1] + self.roi.size()[1] / 2)
                 self.viewBox.addItem(self.vLine, ignoreBounds=True)
                 self.viewBox.addItem(self.hLine, ignoreBounds=True)
-                if settings.widget_params["Fitting Setting"]["mode"] == 1:
-                    self.h_axes2 = self.viewBox.plot()
-                    self.h_axes2.setPen(color='b', width=1)  # x
-                    self.v_axes2 = self.viewBox.plot()
-                    self.v_axes2.setPen(color='b', width=1)
             else:
-                print("please add roi first.")
-                # 0 doesn't check, 2 means check
-                cbk_state.setCheckState(0)
                 settings.widget_params["Analyse Data Setting"]["add_cross_axes"] = False
+                print("please add roi first.")
+                cbk_state.setCheckState(0)
                 return
         else:
             cbk_state.setCheckState(0)
-            self.viewBox.clear()
-            # add image item
-            self.viewBox.addItem(self.img)
-            if settings.widget_params["Analyse Data Setting"]["roiStatus"]:
-                self.viewBox.addItem(self.roi)
-            settings.widget_params["Analyse Data Setting"]["add_cross_axes"] = False
-            # remove plotItem if cross axes has added
-            if self.h_axes is not None and self.v_axes is not None:
-                self.viewBox.removeItem(self.h_axes)
-                self.viewBox.removeItem(self.v_axes)
-
-    def add_cross_axes2(self, cbk_state):
-        pass
+            try:
+                self.viewBox.removeItem(self.vLine)
+                self.viewBox.removeItem(self.hLine)
+            except AttributeError:
+                pass
 
     def update_ch_fitting_cs(self):
         if settings.widget_params["Analyse Data Setting"]["add_cross_axes"]:
             self.vLine.setPos(self.roi.pos()[0]+self.roi.size()[0]/2)
             self.hLine.setPos(self.roi.pos()[1]+self.roi.size()[1]/2)
-        if settings.widget_params["Analyse Data Setting"]["add_cross_axes"]:
-            # fitting process
-            # if settings.widget_params["Image Display Setting"]["magStatus"]:
-            #     Magnification = settings.widget_params["Image Display Setting"]["magValue"]
-            # else:
-            #     Magnification = 1
+        if settings.widget_params["Analyse Data Setting"]["add_rawdata"] or settings.widget_params["Fitting Setting"]["mode"] == 1:
 
             h_data = self.data[int(self.roi.pos()[1] + self.roi.size()[1] / 2), :]
             num_h = range(len(h_data))
@@ -164,37 +178,48 @@ class PlotMainWindow(QWidget):
             # print(self.roi.pos())
             # num_v_data = list([x*len(h_data) for x in num_v_data])
             if settings.widget_params["Fitting Setting"]["mode"] == 1:
-                num_h_data2 = num_h_data[int(self.roi.pos()[0] ): int(self.roi.pos()[0] + self.roi.size()[0])]
+                num_h_data2 = num_h_data[int(self.roi.pos()[0]): int(self.roi.pos()[0] + self.roi.size()[0])]
                 num_h_data2 = np.array(num_h_data2)
-                h_data2 = self.data[int(self.roi.pos()[1] + self.roi.size()[1] / 2), int(self.roi.pos()[0]) : int(self.roi.pos()[0] + self.roi.size()[0])]
+                h_data2 = self.data[int(self.roi.pos()[1] + self.roi.size()[0] / 2), int(self.roi.pos()[0]) : int(self.roi.pos()[0] + self.roi.size()[1])]
                 h_data2 = np.array(h_data2)
-                from scipy import optimize
-                p0 = [1 ,int(self.roi.pos()[1] + self.roi.size()[1] / 2), int(self.roi.size()[1]/2), 0]
+                import warnings
+                warnings.filterwarnings("ignore")#撤销runtimewarning提醒
+                p0 = [1 ,int(self.roi.pos()[1] + self.roi.size()[0] / 2), int(self.roi.size()[0] / 2), 0]
                 plesq = optimize.leastsq(residuals, p0, args=(h_data2, num_h_data2))
-                data1 = plesq[0][0]
-                data2 = plesq[0][1]
-                data3 = plesq[0][2]
+                list1 = [plesq[0][0],plesq[0][1],plesq[0][2],plesq[0][3]]
+                list1[3] = 0  #tuple cannot change, so list it
+                if list1[0] < 0 or list1[0] > 2000 or list1[1] > 1500or list1[0] < 0 or abs(list1[2]) > 100:
+                    list1 = [0,0,0,0]       #When the fitting data deviates too much, do not draw, Same thing down here.
 
-                h_data2 = peval(num_h_data ,plesq[0] )
+                list1 = np.array(tuple(list1))
+                h_data2 = peval(num_h_data, list1)
 
                 num_v_data2 = num_v_data[int(self.roi.pos()[1]): int(self.roi.pos()[1] + self.roi.size()[1])]
                 num_v_data2 = np.array(num_v_data2)
-                v_data2 = self.data[int(self.roi.pos()[0] + self.roi.size()[0] / 2),int(self.roi.pos()[1]): int(self.roi.pos()[1] + self.roi.size()[1])]
+                # v_data2 = self.data[int(self.roi.pos()[0] + self.roi.size()[0] / 2), int(self.roi.pos()[1]): int(self.roi.pos()[1] + self.roi.size()[1])]
+                v_data2 = self.data[int(self.roi.pos()[1]): int(self.roi.pos()[1] + self.roi.size()[1]), int(self.roi.pos()[0] + self.roi.size()[0] / 2)]
                 v_data2 = np.array(v_data2)
-                p1 = [1, int(self.roi.pos()[0] + self.roi.size()[0] / 2), int(self.roi.size()[0] / 2), 0]
+                p1 = [1, int(self.roi.pos()[0] + self.roi.size()[1] / 2), int(self.roi.size()[1] / 2), 0]
                 plesq2 = optimize.leastsq(residuals, p1, args=(v_data2, num_v_data2))
-                data4 = plesq2[0][0]
-                data5 = plesq2[0][1]
-                data6 = plesq2[0][2]
-                data7 = 0
-                v_data2 = peval(num_v_data, plesq2[0])
+                list2 = [plesq2[0][0], plesq2[0][1], plesq2[0][2], plesq2[0][3]]
+                # if list2[2] > 1500:
+                list2[3] = 0
+                if list2[0] < 0 or list2[0] > 2000 or list2[1] > 1500 or list2[0] < 0 or abs(list2[2]) > 100:
+                    list2 = [0, 0, 0, 0]   #
 
-                self.fittingdata.emit({'data1': data1 , 'data2': data2, 'data3': data3, 'data4': data4,'data5': data5, 'data6': data6,'data7': data7})
+                list2 = np.array(tuple(list2))
+                v_data2 = peval(num_v_data, list2)
+                data7 = abs(2*np.pi*np.sqrt(plesq[0][0]*plesq2[0][0])*plesq[0][2]*plesq2[0][2])
+                CCDPlSize = [3.75, 3.75]
+                Magnification = settings.widget_params["Analyse Data Setting"]["magValue"]
+                data8 = plesq[0][2]*CCDPlSize[0]*Magnification*1E-3
+                data9 = plesq2[0][2]*CCDPlSize[1]*Magnification*1E-3
+                self.fittingdata.emit({'data1': plesq[0][0] , 'data2': plesq[0][1], 'data3': plesq[0][2], 'data4': plesq2[0][0],'data5': plesq2[0][1], 'data6': plesq2[0][2],'data7': data7, 'data8': data8,'data9': data9})
                 self.h_axes2.setData(num_h_data, h_data2)
                 self.v_axes2.setData(v_data2, num_v_data)
-
-            self.h_axes.setData(num_h_data, h_data)
-            self.v_axes.setData(v_data, num_v_data)
+            if settings.widget_params["Analyse Data Setting"]["add_rawdata"]:
+                self.h_axes.setData(num_h_data, h_data)
+                self.v_axes.setData(v_data, num_v_data)
 
 
     def calculate_roi(self):

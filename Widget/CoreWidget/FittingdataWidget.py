@@ -1,8 +1,9 @@
 import PyQt5.QtWidgets as QtWidgets
 from PyQt5.QtGui import QFont
-from PyQt5 import QtGui
 from PyQt5.QtWidgets import *
 from Utilities.Helper import settings
+from PyQt5 import QtGui
+from PyQt5.QtCore import *
 
 
 
@@ -13,6 +14,9 @@ class FittingdataWidget(QtWidgets.QWidget):
     can be integrated into LabGui as a message box,which
     can be use for warning and display calculate result
     """
+
+    fitting_jud = pyqtSignal(object)
+
 
     def __init__(self, parent=None):
         super(FittingdataWidget, self).__init__(parent)
@@ -97,18 +101,20 @@ class FittingdataWidget(QtWidgets.QWidget):
     def change_cal(self,mode):
         if mode.isChecked():
             settings.widget_params["Fitting Setting"]["mode"] = 1
+            self.fitting_jud.emit(1)
         else:
             settings.widget_params["Fitting Setting"]["mode"] = 0
+            self.fitting_jud.emit(1)
 
 
 
 
     def change_label(self, dict):
-        self.slabel1.setText(str(dict['data1']))
-        self.slabel2.setText(str(dict['data2']))
-        self.slabel3.setText(str(dict['data3']))
-        self.slabel4.setText(str(dict['data4']))
-        self.slabel5.setText(str(dict['data5']))
-        self.slabel6.setText(str(dict['data6']))
-        self.slabel7.setText(str(dict['data7']))
+        self.slabel1.setText(str('%.2f' % abs(dict['data1'])))
+        self.slabel2.setText(str('%.1f' % abs(dict['data2']))+'px')
+        self.slabel3.setText(str('%.0f' % abs(dict['data3']))+'px/'+str('%.1f'% abs(dict['data8']))+'mm')
+        self.slabel4.setText(str('%.2f' % abs(dict['data4'])))
+        self.slabel5.setText(str('%.1f' % abs(dict['data5']))+'px')
+        self.slabel6.setText(str('%.0f' % abs(dict['data6']))+'px/'+str('%.1f'% abs(dict['data8']))+'mm')
+        self.slabel7.setText(str('%.2e' % abs(dict['data7'])))
 

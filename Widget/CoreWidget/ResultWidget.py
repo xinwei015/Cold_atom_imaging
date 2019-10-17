@@ -92,7 +92,7 @@ class ResultWidget(QtWidgets.QWidget):
         self.prompt.setWindowFlags(Qt.WindowStaysOnTopHint)
         self.prompt.show()
 
-    def mousePressEvent(self, event):
+    def mouseDoubleClickEvent(self, event):
         if event.button() == Qt.LeftButton:
             self.promptset()
 
