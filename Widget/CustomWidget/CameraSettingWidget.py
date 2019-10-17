@@ -66,6 +66,7 @@ class CameraOption(QWidget):
         self.pfMax.setSingleStep(1)
 
         self.roi = QCheckBox("roi", self)
+        self.rawdata = QCheckBox("raw data", self)
         self.cross_axes = QCheckBox("cross axes", self)
 
         layoutT2.addWidget(self.bkgStatus,0,4,1,1)
@@ -75,7 +76,9 @@ class CameraOption(QWidget):
         layoutT2.addWidget(self.tolab,1,6,1,1)
         layoutT2.addWidget(self.pfMax,1,7,1,1)
         layoutT2.addWidget(self.roi,2,4,1,1)
-        layoutT2.addWidget(self.cross_axes,2,5,1,1)
+        layoutT2.addWidget(self.rawdata,2,5,1,1)
+        layoutT2.addWidget(self.cross_axes,2,7,1,1)
+
 
         # print(1)
 
