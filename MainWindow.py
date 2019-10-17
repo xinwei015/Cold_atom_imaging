@@ -386,14 +386,15 @@ class TestMainWindow(QMainWindow):
         self.plot_main_window.Pxatom_num.connect(self.result_dock.change_Pxatom_num)
         self.plot_main_window.TotalPhotons_num.connect(self.result_dock.change_TotalPhotons_num)
         self.plot_main_window.fittingdata.connect(self.Fitting_dock.change_label)
+        self.Fitting_dock.fitting_jud.connect(self.plot_main_window.add_fitting)
 
         # analyse data widget
         self.camera_setting.roi.stateChanged.connect(
-            lambda: self.plot_main_window.add_roi(self.camera_setting.roi, self.camera_setting.cross_axes))
+            lambda: self.plot_main_window.add_roi(self.camera_setting.roi, self.camera_setting.rawdata, self.camera_setting.cross_axes))
+        self.camera_setting.rawdata.stateChanged.connect(
+            lambda: self.plot_main_window.add_rawdata(self.camera_setting.rawdata))
         self.camera_setting.cross_axes.stateChanged.connect(
             lambda: self.plot_main_window.add_cross_axes(self.camera_setting.cross_axes))
-        # self.img_analyse_setting.cross_axes2.stateChanged.connect(
-        #     lambda: self.plot_main_window.add_cross_axes2(self.img_analyse_setting.cross_axes2))
         self.camera_setting.AbsTriger.stateChanged.connect(
             lambda: self.absclick(self.camera_setting.AbsTriger))
         self.camera_setting.auto_save.stateChanged.connect(
@@ -550,14 +551,12 @@ class TestMainWindow(QMainWindow):
         strimg_fpath = str(img_fpath)
         img_file = strimg_fpath[2:len(strimg_fpath) - 19]
         img_file = Path(img_file)
-        img_paths = [img_file]
+        img_paths = img_file
 
-        for win_index in range(settings.widget_params["Image Display Setting"]["img_stack_num"]):
-            if win_index == len(img_paths):
-                break
+        if img_fpath[0] != '':
             plot_win = self.img_queue.plot_wins.get()
             try:
-                plot_win.img_plot(self.load_img_dict(img_paths[win_index]))
+                plot_win.img_plot(self.load_img_dict(img_paths))
                 self.img_queue.plot_wins.put(plot_win)
             except TypeError:
                 return
@@ -580,9 +579,10 @@ class TestMainWindow(QMainWindow):
         for win_index in range(settings.widget_params["Image Display Setting"]["img_stack_num"]):
             if win_index == len(img_paths):
                 break
-            plot_win = self.img_queue.plot_wins.get()
-            plot_win.img_plot(self.load_img_dict(img_paths[win_index]))
-            self.img_queue.plot_wins.put(plot_win)
+            if img_paths != []:
+                plot_win = self.img_queue.plot_wins.get()
+                plot_win.img_plot(self.load_img_dict(img_paths[win_index]))
+                self.img_queue.plot_wins.put(plot_win)
 
     ### MISCELLANY ###
 
