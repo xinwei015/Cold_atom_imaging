@@ -490,9 +490,8 @@ class TestMainWindow(QMainWindow):
             if plot_win.video.image is not None:
                 img_data = np.array(plot_win.video.image)
                 # load image name by path
-                img_name1 = settings.widget_params["Analyse Data Setting"]["Prefix"]
                 img_name2 = (plot_win.img_label.text())[0:20].replace(' ', '~').replace(':', '').replace('-', '')
-                img_name = str(img_name1) + str(img_name2)
+                img_name = str(img_name2)
                 img_data = img_data[::-1]
                 # img_data = Image.fromarray(img_data)
                 # img_data.save(r"{}\{}.png".format(dir_path, img_name))
@@ -526,9 +525,8 @@ class TestMainWindow(QMainWindow):
             dir_path.mkdir()
         img_data = np.array(self.plot_main_window.img.image)
         # load image name by path
-        img_name1 = settings.widget_params["Analyse Data Setting"]["Prefix"]
         img_name2 = (self.plot_main_window.img_label.text())[0:20].replace(' ', '~').replace(':', '').replace('-', '')
-        img_name = str(img_name1) + str(img_name2)
+        img_name = str(img_name2)
         img_data = img_data[::-1]
         # img_data = Image.fromarray(img_data)
         # img_data.save(r"{}\{}.png".format(dir_path, img_name))
@@ -605,26 +603,13 @@ class TestMainWindow(QMainWindow):
             img_data[row, :] = line[:]
             row += 1
         file.close()
-        # else:
-        #     settings.Type_of_file = 'png'
-        #     imgarray = Image.open(img_path)
-        #     img_data = np.array(imgarray)
-        #     # print(type(imgarray))
-        #     # img_data = img_data[:,:,0]
-        #     # print(img_data.)
 
         img_data = img_data[::-1]
-        # print(img_data[0:10,1244:1254])
-        # load image name by path
         img_name = img_path.stem
         img = {
             'img_name': img_name,
             'img_data': img_data
         }
-        # settings.imgData["img_size"][0] = img_data.shape[0]
-        # settings.imgData["img_size"][1] = img_data.shape[1]
-        # print(settings.imgData["img_size"])
-        # print(type(settings.imgData["img_size"]))
         return img
 
 
@@ -651,12 +636,29 @@ class TestMainWindow(QMainWindow):
         self.plot_main_window.img_plot(img_dict)
 
     def update_image_queue(self, img_dict):   #hardware_mode do this
-        QApplication.processEvents()
+        # QApplication.processEvents()
         plot_win = self.img_queue.plot_wins.get()
         plot_win.img_plot(img_dict)
-        if settings.widget_params["Analyse Data Setting"]["autoStatus"] == True:
-            plot_win.save_image()
+        img_name2 = (plot_win.img_label)[0:20].replace(' ', '~').replace(':', '').replace('-', '')
         self.img_queue.plot_wins.put(plot_win)
+        if settings.widget_params["Analyse Data Setting"]["autoStatus"] == True:
+            QApplication.processEvents()
+            fpath = IOHelper.get_config_setting('DATA_PATH')
+            fpath = Path(fpath)
+            dir_path = fpath.joinpath(str(datetime.datetime.now())[2:].split('.')[0].replace(' ', '').replace(':', '_'))
+            if settings.m_path != []:
+                dir_path = settings.m_path
+            if not dir_path.exists():
+                dir_path.mkdir()
+            img_data = np.array(img_dict['img_data'])
+            # load image name by path
+            img_name1 = settings.widget_params["Analyse Data Setting"]["Prefix"]
+            # img_name2 = (self.img_label)[0:20].replace(' ', '~').replace(':', '').replace('-', '')
+            img_name = str(img_name1) + str(img_name2)
+            img_data = img_data[::-1]
+            from numpy import savetxt
+            savetxt(r"{}\{}.data".format(dir_path, img_name), img_data, fmt='%.2e', delimiter=' ', newline='\n',header='', footer='', comments=' ',encoding=None)
+            print("save images to {}".format(dir_path))
         print("update image queue")
 
 
@@ -730,9 +732,9 @@ class Worker(QObject):
 
                         settings.absimgData[3][ii,jj] = -np.log(settings.absimgData[3][ii,jj])
                 # print(settings.absimgData[3][0:20,0:20])
-
+                img_name1 = settings.widget_params["Analyse Data Setting"]["Prefix"]
                 timestamp = datetime.datetime.now()
-                self.sig_hardware_mode_img.emit({'img_name': str(timestamp)[2:], 'img_data': settings.absimgData[3]})
+                self.sig_hardware_mode_img.emit({'img_name': str(img_name1)+str(timestamp)[2:], 'img_data': settings.absimgData[3]})
                 # TestMainWindow.stop_exp_action.setEnabled(True)  # already stop, so connot stop
         else:
             while True:
