@@ -90,31 +90,7 @@ class PlotWindow(QWidget):
         img_dict = {'img_data': np.array(self.video.image), 'img_name': self.img_label}
         settings.imgData["Img_data"] = img_dict['img_data']
         self.img_dict.emit(img_dict)
-######################################
-    # def save_image(self):
-    #     # try:
-    #     if self.video.image is None:
-    #         print("have no image in window")
-    #         return
-    #     fpath = IOHelper.get_config_setting('DATA_PATH')
-    #     fpath = Path(fpath)
-    #     dir_path = fpath.joinpath(str(datetime.datetime.now()).split('.')[0].replace(' ', '-').replace(':', '_'))
-    #     if settings.m_path != []:
-    #         dir_path = settings.m_path
-    #     # print("save images to {}".format(dir_path))
-    #     if not dir_path.exists():
-    #         dir_path.mkdir()
-    #     img_data = np.array(self.video.image)
-    #     # load image name by path
-    #     img_name = (self.img_label.text()).split('.')[0].replace(' ', '-').replace(':', '_')
-    #     img_data = img_data[::-1]
-    #     img_data = Image.fromarray(img_data)
-    #     img_data.save(r"{}\{}.png".format(dir_path, img_name))
-    #     print("save images to {}".format(dir_path))
-    #         # print("images have saved.")
-    #     # except OSError:
-    #     #     print('Image cannot be saved.')
-########################################################################33
+
     def save_image(self):
         # try:
         if self.video.image is None:
@@ -130,9 +106,8 @@ class PlotWindow(QWidget):
             dir_path.mkdir()
         img_data = np.array(self.video.image)
         # load image name by path
-        img_name1 = settings.widget_params["Analyse Data Setting"]["Prefix"]
         img_name2 = (self.img_label)[0:20].replace(' ', '~').replace(':', '').replace('-', '')
-        img_name = str(img_name1) + str(img_name2)
+        img_name = str(img_name2)
         img_data = img_data[::-1]
         # img_data = Image.fromarray(img_data)
         # img_data.save(r"{}\{}.png".format(dir_path, img_name))

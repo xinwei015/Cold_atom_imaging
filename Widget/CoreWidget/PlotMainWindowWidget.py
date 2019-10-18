@@ -88,9 +88,9 @@ class PlotMainWindow(QWidget):
             settings.widget_params["Analyse Data Setting"]["roiStatus"] = False
             settings.widget_params["Analyse Data Setting"]["add_rawdata"] = False
             # remove viewBox's items
-            self.viewBox.clear()
+            # self.viewBox.clear()
             # add image item
-            self.viewBox.addItem(self.img)
+            self.viewBox.removeItem(self.roi)
 
 
     def add_rawdata(self, cbk_state):
@@ -126,9 +126,9 @@ class PlotMainWindow(QWidget):
     def add_fitting(self):
         if settings.widget_params["Fitting Setting"]["mode"] == 1:
             self.h_axes2 = self.viewBox.plot()
-            self.h_axes2.setPen(color='b', width=1)  # x
+            self.h_axes2.setPen(color='w', width=2)  # x
             self.v_axes2 = self.viewBox.plot()
-            self.v_axes2.setPen(color='b', width=1)
+            self.v_axes2.setPen(color='w', width=2)
         else:
             self.viewBox.removeItem(self.h_axes2)
             self.viewBox.removeItem(self.v_axes2)
@@ -264,10 +264,22 @@ class PlotMainWindow(QWidget):
         :return:
         """
         self.img.setImage(img_dict['img_data'])
-        self.img_label.setText(img_dict['img_name'])
         self.data = img_dict['img_data']
         self.data_shape = self.data.shape
-        # print("update image")
+        self.img_label.setText(img_dict['img_name'])
+        #Set the initial axis so that the size of the image remains the same when the axis is added
+        numh = range(self.data_shape[1])
+        numh = list(numh)
+        numhd = np.zeros(self.data_shape[1])
+        numv = range(self.data_shape[0])
+        numv = list(numv)
+        numvd = np.zeros(self.data_shape[0])
+        self.h_axesm = self.viewBox.plot()
+        self.h_axesm.setPen(color='k', width=2)  # x
+        self.h_axesm.setData(numh, numhd)
+        self.v_axesm = self.viewBox.plot()
+        self.v_axesm.setPen(color='k', width=2)
+        self.v_axesm.setData(numvd, numv)
 
     def img_plot2(self):
         if settings.imgData["BkgImg"] !=[] and settings.imgData["Img_data"] !=[]:
