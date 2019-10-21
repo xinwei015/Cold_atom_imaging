@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import *
 from scipy import optimize
 from Model.DataAnalysis.CaculateAtoms import *
 from decimal import *
+from copy import deepcopy
 getcontext().prec = 4#Set significant number
 
 
@@ -292,7 +293,7 @@ class PlotMainWindow(QWidget):
 
     def img_plot3(self):
         if settings.imgData["Img_data"] != []:
-            settings.imgData["Img_photon_range"] = np.zeros((settings.imgData["Img_data"].shape[0], settings.imgData["Img_data"].shape[1]))
+            settings.imgData["Img_photon_range"] = deepcopy(settings.imgData["Img_data"])
             for i in range(settings.imgData["Img_data"].shape[0]):
                 for j in range(settings.imgData["Img_data"].shape[1]):
                     if settings.imgData["Img_data"][i,j] <= settings.widget_params["Image Display Setting"]["pfMin"]:
@@ -303,7 +304,9 @@ class PlotMainWindow(QWidget):
             self.img.setImage(settings.imgData["Img_photon_range"])
             self.data = settings.imgData["Img_photon_range"]
             self.data_shape = settings.imgData["Img_photon_range"].shape
-            print('photon filter ： finish.')
+            # print('photon filter ： finish.')
+            print(settings.imgData["Img_data"][0,:10])
+            print(settings.imgData["Img_photon_range"][0,:10])
         else:
             print('No image')
 
