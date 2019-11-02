@@ -305,8 +305,6 @@ class PlotMainWindow(QWidget):
             self.data = settings.imgData["Img_photon_range"]
             self.data_shape = settings.imgData["Img_photon_range"].shape
             # print('photon filter ： finish.')
-            print(settings.imgData["Img_data"][0,:10])
-            print(settings.imgData["Img_photon_range"][0,:10])
         else:
             print('No image')
 
