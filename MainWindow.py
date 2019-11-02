@@ -196,12 +196,20 @@ class TestMainWindow(QMainWindow):
                                                       icon=None,
                                                       tip="Prefix setting")
 
+        self.setcolorAction = Helper.create_action(self,
+                                                        "colour setting",
+                                                        slot=self.setcolour,
+                                                        shortcut=None,
+                                                        icon=None,
+                                                        tip="colour setting")
+
         self.fileMenu.addAction(self.LoadImgAction)
         self.fileMenu.addAction(self.LoadfolderAction)
         self.fileMenu.addAction(self.SaveMainImgAction)
         self.fileMenu.addAction(self.SaveImgAction)
         self.optionMenu.addAction(self.SetpathAction)
         self.optionMenu.addAction(self.AbsorbImageAction)
+        self.optionMenu.addAction(self.setcolorAction)
         self.optionMenu.addAction(self.PrefixsettingAction)
 
 
@@ -211,7 +219,13 @@ class TestMainWindow(QMainWindow):
         self.thread = None
         self.worker = None
         self.connect_slot2signal()
-        self.setWindowIcon(QIcon('images/icon/UALab.png'))
+
+        icpath = IOHelper.get_configt_setting('DATA_PATH')
+        # icpath = Path(icpath)
+        icpath = str(icpath).replace('\\', '/')
+        icpath = icpath + '/icon/UALab.png'
+        # print(icpath)
+        self.setWindowIcon(QIcon(icpath))
         self.show()
 
     def editFinished(self):
@@ -355,7 +369,7 @@ class TestMainWindow(QMainWindow):
         self.clear_img_stack_action.setEnabled(True)  #can clear stack
         self.clear_main_win_action.setEnabled(True)   #can clear all
         self.camera_setting.cb.setEnabled(True)
-        self.camera_setting.further_setting.setEnabled(False)
+        self.camera_setting.further_setting.setEnabled(True)
         settings.widget_params["Image Display Setting"]["imgSource"] = "disk"
 
         self.camera_setting.video_mode.setChecked(False)
@@ -479,7 +493,8 @@ class TestMainWindow(QMainWindow):
         # try:
         fpath = IOHelper.get_config_setting('DATA_PATH')
         fpath = Path(fpath)
-        dir_path = fpath.joinpath(str(datetime.datetime.now()).split('.')[0].replace(' ', '-').replace(':', '_'))
+        dir_path = fpath
+        # dir_path = fpath.joinpath(str(datetime.datetime.now()).split('.')[0].replace(' ', '-').replace(':', '_'))
         # print("save images to {}".format(dir_path))
         if settings.m_path != []:
             dir_path = settings.m_path
@@ -490,7 +505,7 @@ class TestMainWindow(QMainWindow):
             if plot_win.video.image is not None:
                 img_data = np.array(plot_win.video.image)
                 # load image name by path
-                img_name2 = (plot_win.img_label.text())[0:20].replace(' ', '~').replace(':', '').replace('-', '')
+                img_name2 = (plot_win.img_label)[0:24].replace(' ', '_').replace(':', '').replace('-', '').replace('.', '_')
                 img_name = str(img_name2)
                 img_data = img_data[::-1]
                 # img_data = Image.fromarray(img_data)
@@ -509,6 +524,21 @@ class TestMainWindow(QMainWindow):
         self.path.setTitle('##  Save file to: ' + str(settings.m_path) + '  ##')
         # print(settings.m_path)
 
+    def setcolour(self):
+        self.setcol = QDialog()  # create a dialog
+        lay = QVBoxLayout()
+        self.black = QPushButton("black", self)
+        self.black.clicked.connect(self.setcol1)
+        self.white = QPushButton("white", self)
+        self.white.clicked.connect(self.setcol2)
+        lay.addWidget(self.black)
+        lay.addWidget(self.white)
+        self.setcol.setLayout(lay)
+        self.setcol.setWindowTitle('colour setting')
+        self.setcol.setWindowModality(Qt.NonModal)
+        self.setcol.setWindowFlags(Qt.WindowStaysOnTopHint)
+        self.setcol.show()
+
 
     def Mainwindowfile_save_imgs(self):
         # try:
@@ -517,7 +547,8 @@ class TestMainWindow(QMainWindow):
             return
         fpath = IOHelper.get_config_setting('DATA_PATH')
         fpath = Path(fpath)
-        dir_path = fpath.joinpath(str(datetime.datetime.now())[2:].split('.')[0].replace(' ', '-').replace(':', '_'))
+        dir_path = fpath
+        # dir_path = fpath.joinpath(str(datetime.datetime.now())[2:].split('.')[0].replace(' ', '-').replace(':', '_'))
         # print("save images to {}".format(dir_path))
         if settings.m_path != []:
             dir_path = settings.m_path
@@ -525,7 +556,7 @@ class TestMainWindow(QMainWindow):
             dir_path.mkdir()
         img_data = np.array(self.plot_main_window.img.image)
         # load image name by path
-        img_name2 = (self.plot_main_window.img_label.text())[0:20].replace(' ', '~').replace(':', '').replace('-', '')
+        img_name2 = (self.plot_main_window.img_label.text())[0:24].replace(' ', '_').replace(':', '').replace('-', '').replace('.', '_')
         img_name = str(img_name2)
         img_data = img_data[::-1]
         # img_data = Image.fromarray(img_data)
@@ -570,7 +601,7 @@ class TestMainWindow(QMainWindow):
 
         img_fpath = QFileDialog.getExistingDirectory(self, "Open File", fpath)  # name path
         img_file = Path(img_fpath)
-        img_path1 = list(img_file.glob('*.png'))
+        # img_path1 = list(img_file.glob('*.png'))
         img_path2 = list(img_file.glob('*.data'))
         img_paths = img_path1 + img_path2
 
@@ -639,28 +670,52 @@ class TestMainWindow(QMainWindow):
         # QApplication.processEvents()
         plot_win = self.img_queue.plot_wins.get()
         plot_win.img_plot(img_dict)
-        img_name2 = (plot_win.img_label)[0:20].replace(' ', '~').replace(':', '').replace('-', '')
+        img_name2 = (plot_win.img_label)[0:24].replace(' ', '_').replace(':', '').replace('-', '').replace('.', '_')
         self.img_queue.plot_wins.put(plot_win)
+        print("update image queue")
         if settings.widget_params["Analyse Data Setting"]["autoStatus"] == True:
             QApplication.processEvents()
             fpath = IOHelper.get_config_setting('DATA_PATH')
             fpath = Path(fpath)
-            dir_path = fpath.joinpath(str(datetime.datetime.now())[2:].split('.')[0].replace(' ', '').replace(':', '_'))
+            dir_path = fpath
+            # dir_path = fpath.joinpath(str(datetime.datetime.now())[2:].split('.')[0].replace(' ', '').replace(':', '_'))
             if settings.m_path != []:
                 dir_path = settings.m_path
             if not dir_path.exists():
                 dir_path.mkdir()
             img_data = np.array(img_dict['img_data'])
             # load image name by path
-            img_name1 = settings.widget_params["Analyse Data Setting"]["Prefix"]
             # img_name2 = (self.img_label)[0:20].replace(' ', '~').replace(':', '').replace('-', '')
-            img_name = str(img_name1) + str(img_name2)
+            img_name = str(img_name2)
             img_data = img_data[::-1]
             from numpy import savetxt
             savetxt(r"{}\{}.data".format(dir_path, img_name), img_data, fmt='%.2e', delimiter=' ', newline='\n',header='', footer='', comments=' ',encoding=None)
             print("save images to {}".format(dir_path))
-        print("update image queue")
+        # print("update image queue")
 
+    def setcol1(self):
+        # app = QApplication(sys.argv)
+        palette = QPalette() #调色板
+        palette.setColor(QPalette.Window, QColor(53, 53, 53))
+        palette.setColor(QPalette.WindowText, Qt.white)
+        palette.setColor(QPalette.Base, QColor(25, 25, 25))
+        palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
+        palette.setColor(QPalette.ToolTipBase, Qt.white)
+        palette.setColor(QPalette.ToolTipText, Qt.white)
+        palette.setColor(QPalette.Text, Qt.white)
+        palette.setColor(QPalette.Button, QColor(53, 53, 53))
+        palette.setColor(QPalette.ButtonText, Qt.white)
+        palette.setColor(QPalette.BrightText, Qt.red)
+        palette.setColor(QPalette.Link, QColor(42, 130, 218))
+        palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
+        palette.setColor(QPalette.HighlightedText, Qt.black)
+        app.setPalette(palette)
+
+    def setcol2(self):
+        # app = QApplication(sys.argv)
+        palette = QPalette() #调色板
+        palette.setColor(QPalette.Window, QColor(232, 232, 232))
+        app.setPalette(palette)
 
 class Worker(QObject):
     """
@@ -676,9 +731,9 @@ class Worker(QObject):
         self.camera.initializeCamera(settings.instrument_params["Camera"]["index"])
         self.camera.setAcquisitionMode(settings.widget_params["Image Display Setting"]["mode"])
 
-        self.camera.setExposure(settings.instrument_params["Camera"]["exposure time"])
+        # self.camera.setExposure(settings.instrument_params["Camera"]["exposure time"])
         self.camera.setShutter(settings.instrument_params["Camera"]["shutter time"])
-        self.camera.setGain(settings.instrument_params["Camera"]["gain value"])
+        # self.camera.setGain(settings.instrument_params["Camera"]["gain value"])
         # set a low grab timeout to avoid crash when retrieve image.
         self.camera.set_grab_timeout(grab_timeout=10)
         self.__abort = False
@@ -703,8 +758,9 @@ class Worker(QObject):
                     if img_data is None:
                         continue
                     else:
+                        img_name1 = settings.widget_params["Analyse Data Setting"]["Prefix"]
                         timestamp = datetime.datetime.now()
-                        self.sig_hardware_mode_img.emit({'img_name': str(timestamp)[2:], 'img_data': Helper.split_list(img_data)})
+                        self.sig_hardware_mode_img.emit({'img_name': str(img_name1)+str(timestamp)[2:], 'img_data': Helper.split_list(img_data)})
                         settings.absimgData[i] = Helper.split_list(img_data)
                         break
             # time.sleep(2)
@@ -747,11 +803,12 @@ class Worker(QObject):
                 if img_data is None:
                     continue
                 else:
+                    img_name1 = settings.widget_params["Analyse Data Setting"]["Prefix"]
                     timestamp = datetime.datetime.now()
                     if settings.widget_params["Image Display Setting"]["mode"] == 2:
-                        self.sig_hardware_mode_img.emit({'img_name': str(timestamp)[2:], 'img_data': Helper.split_list(img_data)})
+                        self.sig_hardware_mode_img.emit({'img_name': str(img_name1)+str(timestamp)[2:], 'img_data': Helper.split_list(img_data)})
                     else:
-                        self.sig_video_mode_img.emit({'img_name': str(timestamp)[2:], 'img_data': Helper.split_list(img_data)})
+                        self.sig_video_mode_img.emit({'img_name': str(img_name1)+str(timestamp)[2:], 'img_data': Helper.split_list(img_data)})
                         # set a appropriate refresh value
                         time.sleep(0.1)
         self.camera.stopCamera()
@@ -813,6 +870,7 @@ if __name__ == "__main__":
     palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
     palette.setColor(QPalette.HighlightedText, Qt.black)
     app.setPalette(palette)
+
 
     app.setApplicationName("UALab")
     window = TestMainWindow()
