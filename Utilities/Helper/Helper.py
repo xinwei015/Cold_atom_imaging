@@ -3,6 +3,8 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 import numpy as np
+from Utilities.IO import IOHelper
+from pathlib import Path
 
 
 class print_redirect(QObject):
@@ -29,7 +31,10 @@ class print_redirect(QObject):
 def create_action(parent, text, slot=None, shortcut=None, icon=None, tip=None, checkable=False):
     action = QAction(text, parent)
     if icon is not None:
-        action.setIcon(QIcon("./images/%s.png" % icon))
+        icpath = IOHelper.get_configt_setting('DATA_PATH')
+        # icpath = Path(icpath)
+        icpath = str(icpath).replace('\\','/')
+        action.setIcon(QIcon(icpath + "/%s.png" % icon))
     if shortcut is not None:
         action.setShortcut(shortcut)
     if tip is not None:
